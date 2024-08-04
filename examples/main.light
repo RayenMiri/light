@@ -1,2 +1,3 @@
-var a = "Hello World"
-print(a)
+var a = "Hello World";
+
+print(a);
