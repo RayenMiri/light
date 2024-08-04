@@ -6,7 +6,7 @@ ast_t* init_ast(int type) {
     ast->type = type;
 
     // ast_variable_def
-    ast->variable_def_vame = NULL;
+    ast->variable_def_name = NULL;
     ast->variable_def_var_value = NULL;
     
     // ast_variable

@@ -2,26 +2,26 @@
 #define AST_H
 #include <stdlib.h>
 
-typedef struct ast
-{
-    enum{
-        ast_variabe_def,
-        ast_variabe,
+typedef struct ast {
+    enum {
+        ast_variable_def,
+        ast_variable,
         ast_exp,
         ast_string,
         ast_number,
         ast_compound,
         ast_statement,
         ast_func_call,
-        ast_func_def
-    }type;
+        ast_func_def,
+        ast_noop,
+    } type;
 
-    // ast_variabe_def,
-    char* variable_def_vame;
+    // ast_variable_def
+    char* variable_def_name; // Corrected the typo here
     struct ast* variable_def_var_value;
     
-    // ast_variabe
-    char * variable_name;
+    // ast_variable
+    char* variable_name;
    
     // ast_func_call
     char* func_call_name;
@@ -35,8 +35,9 @@ typedef struct ast
     struct ast** compound_value;
     size_t compound_size;
 
-}ast_t;
-//initiliz the AST
-ast_t * init_ast(int type);
+} ast_t;
+
+// Initialize the AST
+ast_t* init_ast(int type);
 
 #endif

@@ -26,39 +26,36 @@ void lexer_skip_ws(lexer_t* lexer){
     }
 }
 
-token_t* lexer_get_next_token(lexer_t* lexer){
-    while (lexer->c != '\0' && lexer->i < strlen(lexer->contents)){
-        if(lexer->c == ' ' || lexer->c == 10){
+token_t* lexer_get_next_token(lexer_t* lexer) {
+    while (lexer->c != '\0' && lexer->i < strlen(lexer->contents)) {
+        if (lexer->c == ' ' || lexer->c == 10) {
             lexer_skip_ws(lexer);
+            continue;
         }
-        
-        if(isalnum(lexer->c)){
-            return lexer_collect_id(lexer);
-        }
-       
-        if(lexer->c == '"'){
-            return lexer_collect_string(lexer);
-        }
-        switch (lexer->c)
-        {
-            case '=': return lexer_advace_with_token(lexer,init_token(TOKEN_ASSIGN,lexer_get_current_char_as_string(lexer))); break;
-            case ';': return lexer_advace_with_token(lexer,init_token(TOKEN_SEMI,lexer_get_current_char_as_string(lexer))); break;
-            case '(': return lexer_advace_with_token(lexer,init_token(TOKEN_LPAREN,lexer_get_current_char_as_string(lexer))); break;
-            case ')': return lexer_advace_with_token(lexer,init_token(TOKEN_RPAREN,lexer_get_current_char_as_string(lexer))); break;
-            case '{': return lexer_advace_with_token(lexer,init_token(TOKEN_LBRACE,lexer_get_current_char_as_string(lexer))); break;
-            case '}': return lexer_advace_with_token(lexer,init_token(TOKEN_RBRACE,lexer_get_current_char_as_string(lexer))); break;
-            case ',': return lexer_advace_with_token(lexer,init_token(TOKEN_COMMA,lexer_get_current_char_as_string(lexer))); break;
 
-            
+        if (isalnum(lexer->c)) {
+            token_t* token = lexer_collect_id(lexer);
+            return token;
         }
-    };
-    return init_token(TOKEN_EOF,"\0");
+
+        if (lexer->c == '"') {
+            token_t* token = lexer_collect_string(lexer);
+            return token;
+        }
+
+        switch (lexer->c) {
+            case '=': return lexer_advance_with_token(lexer, init_token(TOKEN_ASSIGN, lexer_get_current_char_as_string(lexer))); break;
+            case ';': return lexer_advance_with_token(lexer, init_token(TOKEN_SEMI, lexer_get_current_char_as_string(lexer))); break;
+            case '(': return lexer_advance_with_token(lexer, init_token(TOKEN_LPAREN, lexer_get_current_char_as_string(lexer))); break;
+            case ')': return lexer_advance_with_token(lexer, init_token(TOKEN_RPAREN, lexer_get_current_char_as_string(lexer))); break;
+            case '{': return lexer_advance_with_token(lexer, init_token(TOKEN_LBRACE, lexer_get_current_char_as_string(lexer))); break;
+            case '}': return lexer_advance_with_token(lexer, init_token(TOKEN_RBRACE, lexer_get_current_char_as_string(lexer))); break;
+            case ',': return lexer_advance_with_token(lexer, init_token(TOKEN_COMMA, lexer_get_current_char_as_string(lexer))); break;
+        }
+    }
+    return init_token(TOKEN_EOF, "\0");
 }
 
-token_t* lexer_advace_with_token(lexer_t* lexer,token_t* token){
-    lexer_advance(lexer);
-    return token;
-}
 
 /*
 The lexer_collect_string function collect String Characters: A while loop is used to collect characters until 
@@ -103,4 +100,9 @@ char* lexer_get_current_char_as_string(lexer_t* lexer){
     str[0] = lexer->c;
     str[1] = '\0';
     return str;
+}
+
+token_t* lexer_advance_with_token(lexer_t* lexer,token_t* token){
+    lexer_advance(lexer);
+    return token;
 }
