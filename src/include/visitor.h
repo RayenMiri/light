@@ -1,15 +1,17 @@
 #ifndef VISITOR_H
 #define VISITOR_H
 #include "ast.h"
+#include "symbol_table.h"
 
 typedef struct visitor
 {
     ast_t ** variable_definitions;
     size_t variable_definitions_size;
+    symbol_table_t* symbol_table; 
     
 }visitor_t;
 
-visitor_t* init_visitor();
+visitor_t* init_visitor() ;
 
 ast_t* visitor_visit(visitor_t* visitor, ast_t* node);
 

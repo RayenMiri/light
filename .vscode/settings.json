@@ -2,6 +2,14 @@
     "files.associations": {
         "stdlib.h": "c",
         "string.h": "c",
-        "visitor.h": "c"
+        "visitor.h": "c",
+        "symbol_table.h": "c",
+        "stdio.h": "c",
+        "array": "c",
+        "initializer_list": "c",
+        "utility": "c",
+        "typeinfo": "c",
+        "io.h": "c",
+        "functional": "c"
     }
 }

@@ -22,6 +22,8 @@ visitor_t* init_visitor() {
     visitor_t* visitor = calloc(1, sizeof(visitor_t));
     visitor->variable_definitions = NULL;
     visitor->variable_definitions_size = 0;
+    visitor->symbol_table = NULL; // Initialize symbol table
+
     return visitor;
 }
 
@@ -100,17 +102,33 @@ ast_t* visitor_visit_ast_statement(visitor_t* visitor, ast_t* node) {
 }
 
 ast_t* visitor_visit_ast_func_call(visitor_t* visitor, ast_t* node) {
+    // Handle predefined functions like "print"
     if (strcmp(node->func_call_name, "print") == 0) {
         return pre_defined_func_print(visitor, node->func_call_args, node->func_call_args_size);
     }
 
-    printf("Undefined function %s\n", node->func_call_name);
-    exit(1);
+    ast_t* function = symbol_table_lookup(visitor->symbol_table, node->func_call_name);
+   
+    if (!function) {
+        printf("Undefined function %s\n", node->func_call_name);
+        exit(0); // You might want to use a better error handling mechanism
+    }
+
+    // Ensure the function definition is indeed a function
+    if (function->type != ast_func_def) {
+        printf("%s is not a function\n", node->func_call_name);
+        exit(1);
+    }
+    // Visit the function body
+    ast_t* result = visitor_visit(visitor, function->func_def_body);
+
+    return result;
 }
 
+
+
 ast_t* visitor_visit_ast_func_def(visitor_t* visitor, ast_t* node) {
-    printf("we are have successfully visited the function defintion \n");
-    printf("function name : %s\n",node->func_def_name);
+
     return node;
 }
 

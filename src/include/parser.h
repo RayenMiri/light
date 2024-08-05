@@ -3,14 +3,14 @@
 #include "token.h"
 #include "ast.h"
 #include "lexer.h"
+#include "symbol_table.h"
 
 typedef struct parser
 {
     lexer_t* lexer;
     token_t* current_token; 
     token_t* prev_token;
-    
-   
+    symbol_table_t* symbol_table;
 
 }parser_t;
 

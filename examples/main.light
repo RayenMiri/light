@@ -1,6 +1,8 @@
-function test(){
-    var a = "Hello World";
+print("Hello World\n");
+
+function MyFunction(){
+    var a = "this is variable a \n";
     print(a);
 }
 
-test();
+MyFunction();

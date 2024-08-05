@@ -1,4 +1,5 @@
 #include "include/parser.h"
+#include "include/symbol_table.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +9,7 @@ parser_t* init_parser(lexer_t* lexer) {
     parser->lexer = lexer;
     parser->current_token = lexer_get_next_token(lexer);
     parser->prev_token = parser->current_token;
+    parser->symbol_table = NULL;
 
     return parser;
 }
@@ -69,7 +71,6 @@ ast_t* parser_parse_exp(parser_t* parser) {
 }
 
 ast_t* parser_parse_func_call(parser_t* parser) {
-    printf("we are calling a funtion here ");
     ast_t* func_call = init_ast(ast_func_call);
     func_call->func_call_name = parser->prev_token->value;
     func_call->func_call_args = NULL;
@@ -98,23 +99,20 @@ ast_t* parser_parse_func_call(parser_t* parser) {
 
 ast_t* parser_parse_func_definition(parser_t* parser) {
     ast_t* ast_function_def = init_ast(ast_func_def);
-
     parser_consume(parser, TOKEN_IDENTIFIER);
+
     char* function_name = parser->current_token->value;
-  
-    ast_function_def->func_def_name = calloc(strlen(function_name)+1,sizeof(char));
-    
-    strcpy(ast_function_def->func_def_name,function_name);
-   
     parser_consume(parser, TOKEN_IDENTIFIER);
     parser_consume(parser, TOKEN_LPAREN);
     parser_consume(parser, TOKEN_RPAREN);
     parser_consume(parser, TOKEN_LBRACE);
 
     ast_function_def->func_def_body = parser_parse_statements(parser);
-
     parser_consume(parser, TOKEN_RBRACE);
 
+    // Store function definition in symbol table
+    symbol_table_insert(parser->symbol_table, function_name, ast_function_def);
+    
     return ast_function_def;
 }
 
@@ -133,15 +131,18 @@ ast_t* parser_parse_variable(parser_t* parser) {
 }
 
 ast_t* parser_parse_variable_definition(parser_t* parser) {
-    parser_consume(parser, TOKEN_IDENTIFIER);
+    parser_consume(parser, TOKEN_IDENTIFIER);  // "var"
     char* var_name = parser->current_token->value;
-
-    parser_consume(parser, TOKEN_IDENTIFIER);
-    parser_consume(parser, TOKEN_ASSIGN);
+    parser_consume(parser, TOKEN_IDENTIFIER);  // Variable name
+    parser_consume(parser, TOKEN_ASSIGN);      // "="
     ast_t* var_value = parser_parse_exp(parser);
+
     ast_t* var_def = init_ast(ast_variable_def);
     var_def->variable_def_name = var_name;
     var_def->variable_def_var_value = var_value;
+
+    // Store variable definition in symbol table
+    symbol_table_insert(parser->symbol_table, var_name, var_def);
 
     return var_def;
 }
