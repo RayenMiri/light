@@ -1,3 +1,6 @@
-var a = "Hello World";
-var b = "This is my first programming language";
-print("a =",a);
+function test(){
+    var a = "Hello World";
+    print(a);
+}
+
+test();

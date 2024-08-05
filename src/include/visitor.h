@@ -6,6 +6,7 @@ typedef struct visitor
 {
     ast_t ** variable_definitions;
     size_t variable_definitions_size;
+    
 }visitor_t;
 
 visitor_t* init_visitor();

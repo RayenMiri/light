@@ -16,7 +16,7 @@ typedef struct parser
 
 parser_t* init_parser(lexer_t* lexer);
 
-void parser_die(parser_t* parser, int token_type);//method that excepts a certain type of token
+void parser_consume(parser_t* parser, int token_type);//method that excepts a certain type of token
 
 ast_t* parser_parse(parser_t* parser);//return the whole AST
 
@@ -31,6 +31,8 @@ ast_t* parser_parse_factor(parser_t* parser);
 ast_t* parser_parse_term(parser_t* parser);
 
 ast_t* parser_parse_func_call(parser_t* parser);
+
+ast_t* parser_parse_func_definition(parser_t* parser);
 
 ast_t* parser_parse_variable(parser_t* parser);
 

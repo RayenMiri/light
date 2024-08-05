@@ -28,6 +28,11 @@ typedef struct ast {
     struct ast** func_call_args;
     size_t func_call_args_size;
 
+    // ast_func_def
+    struct ast* func_def_body;
+    char* func_def_name;
+
+
     // ast_string
     char* string_value;
 

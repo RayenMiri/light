@@ -17,6 +17,10 @@ ast_t* init_ast(int type) {
     ast->func_call_args = NULL;
     ast->func_call_args_size = 0;
 
+    // ast_func_def
+    ast->func_def_body = NULL;
+    ast->func_def_name = NULL;
+    
     // ast_string
     ast->string_value = NULL;
 

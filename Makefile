@@ -14,5 +14,5 @@ $(EXEC): $(OBJECTS)
 
 # Clean up object files and executables
 clean:
-	del /Q *.o
+	del /Q src\*.o
 	del /Q $(EXEC)

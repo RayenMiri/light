@@ -103,12 +103,14 @@ ast_t* visitor_visit_ast_func_call(visitor_t* visitor, ast_t* node) {
     if (strcmp(node->func_call_name, "print") == 0) {
         return pre_defined_func_print(visitor, node->func_call_args, node->func_call_args_size);
     }
+
     printf("Undefined function %s\n", node->func_call_name);
     exit(1);
 }
 
 ast_t* visitor_visit_ast_func_def(visitor_t* visitor, ast_t* node) {
-    // Handle function definition nodes if needed
+    printf("we are have successfully visited the function defintion \n");
+    printf("function name : %s\n",node->func_def_name);
     return node;
 }
 
