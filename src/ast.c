@@ -1,32 +1,42 @@
 #include "include/ast.h"
-#include <stdlib.h>
+#include <string.h>
 
 ast_t* init_ast(int type) {
-    ast_t* ast = calloc(1, sizeof(struct ast));
+    ast_t* ast = calloc(1, sizeof(ast_t));
     ast->type = type;
 
-    // ast_variable_def
+   
+        
+    ast->scope = NULL;
+
     ast->variable_def_name = NULL;
     ast->variable_def_var_value = NULL;
-    
-    // ast_variable
     ast->variable_name = NULL;
-   
-    // ast_func_call
+    
+
     ast->func_call_name = NULL;
     ast->func_call_args = NULL;
     ast->func_call_args_size = 0;
+    
 
-    // ast_func_def
     ast->func_def_body = NULL;
     ast->func_def_name = NULL;
+    ast->func_def_args = NULL;
+    ast->func_def_args_size = 0;
     
-    // ast_string
-    ast->string_value = NULL;
 
-    // ast_compound
+    ast->func_arg_name = NULL;
+    ast->func_arg_value = NULL;
+    
+
+    ast->string_value = NULL;
+    
+
     ast->compound_value = NULL;
     ast->compound_size = 0;
+    
 
+    
     return ast;
+
 }

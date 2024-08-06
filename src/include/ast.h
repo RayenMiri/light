@@ -13,16 +13,18 @@ typedef struct ast {
         ast_statement,
         ast_func_call,
         ast_func_def,
+        ast_func_arg,  
         ast_noop,
     } type;
+    struct scope* scope;
 
     // ast_variable_def
-    char* variable_def_name; // Corrected the typo here
+    char* variable_def_name; 
     struct ast* variable_def_var_value;
     
     // ast_variable
     char* variable_name;
-   
+    
     // ast_func_call
     char* func_call_name;
     struct ast** func_call_args;
@@ -31,7 +33,12 @@ typedef struct ast {
     // ast_func_def
     struct ast* func_def_body;
     char* func_def_name;
+    struct ast** func_def_args;
+    size_t func_def_args_size;
 
+    // ast_func_arg
+    char* func_arg_name;   // Argument name
+    struct ast* func_arg_value; // Argument value
 
     // ast_string
     char* string_value;

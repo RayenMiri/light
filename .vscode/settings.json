@@ -10,6 +10,7 @@
         "utility": "c",
         "typeinfo": "c",
         "io.h": "c",
-        "functional": "c"
+        "functional": "c",
+        "scope.h": "c"
     }
 }

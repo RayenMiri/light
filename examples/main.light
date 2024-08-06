@@ -1,8 +1,7 @@
-print("Hello World\n");
-
-function MyFunction(){
-    var a = "this is variable a \n";
-    print(a);
+function MyFunction(x){
+    print(x);
 }
 
-MyFunction();
+var a = "test\n";
+
+MyFunction(a);

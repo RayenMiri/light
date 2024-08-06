@@ -1,16 +1,26 @@
 #include "include/visitor.h"
+#include "include/scope.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+//predefined functions
 static ast_t* pre_defined_func_print(visitor_t* visitor, ast_t** args, int args_size) {
     for (int i = 0; i < args_size; i++) {
         ast_t* visited_ast = visitor_visit(visitor, args[i]);
-        
+
         switch (visited_ast->type) {
             case ast_string:
-                printf("%s",process_escaped_sequences(visited_ast->string_value));
-                break; 
+                printf("%s", process_escaped_sequences(visited_ast->string_value));
+                break;
+            case ast_variable_def:
+                {
+                    // Declare var_value inside a block
+                    ast_t* var_value = visitor_visit(visitor, visited_ast->variable_def_var_value);
+                    printf("%s", var_value->string_value);
+                }
+                break;
             default:
                 printf("Unhandled type: %d\n", visited_ast->type);
         }
@@ -20,9 +30,7 @@ static ast_t* pre_defined_func_print(visitor_t* visitor, ast_t** args, int args_
 
 visitor_t* init_visitor() {
     visitor_t* visitor = calloc(1, sizeof(visitor_t));
-    visitor->variable_definitions = NULL;
-    visitor->variable_definitions_size = 0;
-    visitor->symbol_table = NULL; // Initialize symbol table
+    
 
     return visitor;
 }
@@ -47,6 +55,8 @@ ast_t* visitor_visit(visitor_t* visitor, ast_t* node) {
             return visitor_visit_ast_func_call(visitor, node);
         case ast_func_def:
             return visitor_visit_ast_func_def(visitor, node);
+        case ast_func_arg:
+            return visitor_visit_ast_func_arg(visitor, node);
         default:
             printf("Uncaught statement of type %d\n", node->type);
             exit(1);
@@ -54,25 +64,21 @@ ast_t* visitor_visit(visitor_t* visitor, ast_t* node) {
 }
 
 ast_t* visitor_visit_ast_variable_def(visitor_t* visitor, ast_t* node) {
-    visitor->variable_definitions_size += 1;
-    if (visitor->variable_definitions == NULL) {
-        visitor->variable_definitions = calloc(1, sizeof(ast_t*));
-    } else {
-        visitor->variable_definitions = realloc(visitor->variable_definitions, visitor->variable_definitions_size * sizeof(ast_t*));
-    }
-    visitor->variable_definitions[visitor->variable_definitions_size - 1] = node;
+    // Handle variable definition
+    scope_set_variable_definition(node->scope,node);
     return node;
 }
 
 ast_t* visitor_visit_ast_variable(visitor_t* visitor, ast_t* node) {
-    for (int i = 0; i < visitor->variable_definitions_size; i++) {
-        ast_t* var_def = visitor->variable_definitions[i];
-        if (strcmp(var_def->variable_def_name, node->variable_name) == 0) {
-            return visitor_visit(visitor, var_def->variable_def_var_value);
-        }
+    // Handle variable
+    ast_t* v_def = scope_get_variable_definition(node->scope,node->variable_name);
+    if(v_def != NULL){
+        return visitor_visit(visitor,v_def->variable_def_var_value);
     }
+    printf("value %s \n", node->variable_name);
     printf("Undefined variable %s\n", node->variable_name);
-    return node;
+    exit(1);
+    return node; // It's unreachable but I'll keep it
 }
 
 ast_t* visitor_visit_ast_exp(visitor_t* visitor, ast_t* node) {
@@ -102,33 +108,26 @@ ast_t* visitor_visit_ast_statement(visitor_t* visitor, ast_t* node) {
 }
 
 ast_t* visitor_visit_ast_func_call(visitor_t* visitor, ast_t* node) {
-    // Handle predefined functions like "print"
     if (strcmp(node->func_call_name, "print") == 0) {
         return pre_defined_func_print(visitor, node->func_call_args, node->func_call_args_size);
     }
-
-    ast_t* function = symbol_table_lookup(visitor->symbol_table, node->func_call_name);
-   
-    if (!function) {
-        printf("Undefined function %s\n", node->func_call_name);
-        exit(0); // You might want to use a better error handling mechanism
+    ast_t* f_def = scope_get_function_definition(node->scope,node->func_call_name);
+    if(f_def != NULL){
+        return visitor_visit(visitor,f_def->func_def_body);
     }
-
-    // Ensure the function definition is indeed a function
-    if (function->type != ast_func_def) {
-        printf("%s is not a function\n", node->func_call_name);
-        exit(1);
-    }
-    // Visit the function body
-    ast_t* result = visitor_visit(visitor, function->func_def_body);
-
-    return result;
+    printf("Undefined function %s\n", node->func_call_name);
+    exit(0);
+    return node; // It's unreachable but I'll keep it
 }
 
-
-
 ast_t* visitor_visit_ast_func_def(visitor_t* visitor, ast_t* node) {
+    // Handle function definition
+    scope_set_function_definition(node->scope,node);
+    return node;
+}
 
+ast_t* visitor_visit_ast_func_arg(visitor_t* visitor, ast_t* node) {
+    // Handle function argument nodes if needed
     return node;
 }
 
@@ -166,5 +165,3 @@ char* process_escaped_sequences(const char* str) {
     result[j] = '\0'; // Null-terminate the result
     return result;
 }
-
-

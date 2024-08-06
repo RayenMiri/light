@@ -5,9 +5,7 @@
 
 typedef struct visitor
 {
-    ast_t ** variable_definitions;
-    size_t variable_definitions_size;
-    symbol_table_t* symbol_table; 
+    
     
 }visitor_t;
 
@@ -33,6 +31,8 @@ ast_t* visitor_visit_ast_func_call(visitor_t* visitor, ast_t* node);
 
 ast_t* visitor_visit_ast_func_def(visitor_t* visitor, ast_t* node);
 
+ast_t* visitor_visit_ast_func_arg(visitor_t* visitor, ast_t* node);
+    
 char* process_escaped_sequences(const char* str);
 
 #endif
