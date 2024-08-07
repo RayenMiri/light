@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 parser_t* init_parser(lexer_t* lexer) {
     parser_t* parser = calloc(1, sizeof(struct parser));
@@ -68,6 +69,7 @@ ast_t* parser_parse_statements(parser_t* parser, scope_t* scope) {
 }
 
 ast_t* parser_parse_statement(parser_t* parser, scope_t* scope) {
+    printf("statemet \n ");
     switch (parser->current_token->type) {
         case TOKEN_IDENTIFIER: return parser_parse_identifier(parser, scope);
         default: {
@@ -83,6 +85,8 @@ ast_t* parser_parse_statement(parser_t* parser, scope_t* scope) {
 }
 
 ast_t* parser_parse_exp(parser_t* parser, scope_t* scope) {
+    printf("exp \n ");
+
     switch (parser->current_token->type) {
         case TOKEN_STRING: return parser_parse_string(parser, scope);
         case TOKEN_NUMBER : return parser_parse_number(parser,scope);
@@ -102,30 +106,59 @@ ast_t* parser_parse_exp(parser_t* parser, scope_t* scope) {
 ast_t* parser_parse_func_call(parser_t* parser, scope_t* scope) {
     ast_t* func_call = init_ast(ast_func_call);
     func_call->func_call_name = parser->prev_token->value;
+    printf("f name %s\n",func_call->func_call_name);
     func_call->func_call_args = NULL;
     func_call->func_call_args_size = 0;
 
     parser_consume(parser, TOKEN_LPAREN);
 
+    bool is_first_arg = true;
+
     while (parser->current_token->type != TOKEN_RPAREN) {
-        
-        if (func_call->func_call_args_size > 0) {
-            parser_consume(parser, TOKEN_COMMA);
+        if (!is_first_arg) {
+            if (parser->current_token->type == TOKEN_COMMA) {
+                parser_consume(parser, TOKEN_COMMA);
+            } 
         }
 
-        ast_t* ast_exp = parser_parse_exp(parser, scope);
+        ast_t* ast_exp = NULL;
+        switch (parser->current_token->type) {
+            
+            case TOKEN_LPAREN:
+           
+                printf("Parsing math expression \n");
+                ast_exp = parser_parse_expression(parser, scope);
+                break;
+            // Add other cases if needed
+            default:
+                printf("Parsing normal expression \n");
+                ast_exp = parser_parse_exp(parser, scope);
+                break;
+        }
+
+        if (ast_exp == NULL) {
+            fprintf(stderr, "Error: Failed to parse argument expression.\n");
+            return NULL; // Handle the error accordingly
+        }
+
         func_call->func_call_args_size += 1;
         func_call->func_call_args = realloc(
             func_call->func_call_args,
             func_call->func_call_args_size * sizeof(struct ast*)
         );
         func_call->func_call_args[func_call->func_call_args_size - 1] = ast_exp;
+
+        is_first_arg = false;
+
+        // Print token information for debugging
+        printf("Next token: type %d, value '%s'\n", parser->current_token->type, parser->current_token->value);
     }
 
     parser_consume(parser, TOKEN_RPAREN);
     func_call->scope = scope;
     return func_call;
 }
+
 
 ast_t* parser_parse_func_definition(parser_t* parser, scope_t* scope) {
     ast_t* ast_function_def = init_ast(ast_func_def);
@@ -191,6 +224,7 @@ ast_t* parser_parse_variable_definition(parser_t* parser, scope_t* scope) {
     // Determine if the value is a mathematical expression or a direct value
     if (parser->current_token->type == TOKEN_NUMBER || parser->current_token->type == TOKEN_IDENTIFIER) {
         // Direct value (number or string)
+        printf("math \n ");
         var_value = parser_parse_expression(parser, scope);
        
     } else if (parser->current_token->type == TOKEN_LPAREN ||
@@ -198,6 +232,8 @@ ast_t* parser_parse_variable_definition(parser_t* parser, scope_t* scope) {
                parser->current_token->type == TOKEN_IDENTIFIER||
                parser->current_token->type == TOKEN_STRING
                ) {
+        printf("not math \n ");
+
         // Mathematical expression or complex expression
         var_value = parser_parse_exp(parser, scope);
     } else {
