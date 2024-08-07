@@ -9,7 +9,7 @@ Light is a simple, beginner-friendly programming language designed for beginners
 Light uses a syntax that is simple and intuitive, making it easy for beginners to learn. The basic syntax rules include:
 
 - **Identifiers**: Names for variables, functions, etc., which must start with a letter and can contain letters, digits, and underscores.
-- **Keywords**: Reserved words that have special meaning in Light. Examples include `var`, `function`, `if`, `else`, and `return`.
+- **Keywords**: Reserved words that have special meaning in Light. Examples include `var` and `function`.
 
 ## Data Types
 
