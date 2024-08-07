@@ -2,6 +2,16 @@
 #define AST_H
 #include <stdlib.h>
 
+// Define token types for binary operations
+typedef enum {
+    OPERATOR_PLUS,
+    OPERATOR_MINUS,
+    OPERATOR_MULTIPLY,
+    OPERATOR_DIVIDE,
+    OPERATOR_MODULO,
+    // Add other operators as needed
+} binary_op_type_t;
+
 typedef struct ast {
     enum {
         ast_variable_def,
@@ -13,7 +23,8 @@ typedef struct ast {
         ast_statement,
         ast_func_call,
         ast_func_def,
-        ast_func_arg,  
+        ast_func_arg, 
+        ast_binary_op,
         ast_noop,
     } type;
     struct scope* scope;
@@ -43,10 +54,18 @@ typedef struct ast {
     // ast_string
     char* string_value;
 
+    // ast_number
+    double number_value; // Value for number nodes
+
     // ast_compound
     struct ast** compound_value;
     size_t compound_size;
 
+    // ast_binary_op
+    struct ast* binary_op_left;
+    struct ast* binary_op_right;
+    binary_op_type_t binary_op_type;
+    
 } ast_t;
 
 // Initialize the AST

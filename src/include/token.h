@@ -1,7 +1,7 @@
 #ifndef TOKEN_H
 #define TOKEN_H
-typedef struct token
-{
+
+typedef struct token {
     enum {
         TOKEN_IDENTIFIER,
         TOKEN_NUMBER,
@@ -17,11 +17,18 @@ typedef struct token
         TOKEN_WS,
         TOKEN_FN,
         TOKEN_EOF,
-        TOKEN_UNKNOWN
-    }type;
+        TOKEN_PLUS,     
+        TOKEN_MINUS,     
+        TOKEN_MUL,       
+        TOKEN_DIV,
+        TOKEN_UNKNOWN,    
+    } type;
     char* value;
-}token_t;
+    unsigned int line;
+    unsigned int pos;
+} token_t;
 
-token_t* init_token(int type,char* value);
+token_t* init_token(int type, char* value, unsigned int line, unsigned int pos);
+const char* token_type_to_string(int type);
 
 #endif

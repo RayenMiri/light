@@ -1,7 +1,16 @@
-function MyFunction(x){
-    print(x);
+var globalVar = 10;
+
+function example() {
+    var localVar = 5;
+    var sum = globalVar + localVar;
+    print(sum);
 }
 
-var a = "test\n";
+example();
 
-MyFunction(a);
+var str = "string";
+print(str);
+
+print("hello","world");
+
+print("this is a ",str);

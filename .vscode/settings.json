@@ -11,6 +11,9 @@
         "typeinfo": "c",
         "io.h": "c",
         "functional": "c",
-        "scope.h": "c"
+        "scope.h": "c",
+        "lexer.h": "c",
+        "token.h": "c",
+        "ctype.h": "c"
     }
 }

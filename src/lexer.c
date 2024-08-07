@@ -1,108 +1,150 @@
 #include "include/lexer.h"
+#include "include/token.h"
 #include <stdlib.h>
-#include <string.h>
 #include <ctype.h>
+#include <string.h>
 #include <stdio.h>
 
-lexer_t* init_lexer(char* contents){
-    lexer_t* lexer = calloc(1,sizeof(struct lexer));
+lexer_t* init_lexer(char* contents) {
+    lexer_t* lexer = calloc(1, sizeof(lexer_t));
     lexer->contents = contents;
     lexer->i = 0;
+    lexer->line = 1; // Initialize line number to 1
+    lexer->pos = 0;  // Initialize position to 0
     lexer->c = contents[lexer->i];
     return lexer;
 }
 
-void lexer_advance(lexer_t* lexer){
-    if(lexer->c != '\0' && lexer->i < strlen(lexer->contents)){
-        lexer->i+=1;
+void lexer_advance(lexer_t* lexer) {
+    if (lexer->c != '\0' && lexer->i < strlen(lexer->contents)) {
+        lexer->i += 1;
+        lexer->pos += 1; // Increment position in the line
         lexer->c = lexer->contents[lexer->i];
+
+        if (lexer->c == '\n') { // Handle new lines
+            lexer->line += 1;
+            lexer->pos = 0;
+        }
     }
 }
 
-void lexer_skip_ws(lexer_t* lexer){
-   
-    while(lexer->c == ' ' || lexer->c == 10){
+void lexer_skip_ws(lexer_t* lexer) {
+    while (lexer->c == ' ' || lexer->c == '\t' || lexer->c == '\n' || lexer->c == '\r') {
         lexer_advance(lexer);
     }
 }
 
 token_t* lexer_get_next_token(lexer_t* lexer) {
     while (lexer->c != '\0' && lexer->i < strlen(lexer->contents)) {
-        if (lexer->c == ' ' || lexer->c == 10) {
+        if (isspace(lexer->c)) {
             lexer_skip_ws(lexer);
             continue;
         }
 
-        if (isalnum(lexer->c)) {
-            token_t* token = lexer_collect_id(lexer);
-            return token;
+        if (isalpha(lexer->c) || lexer->c == '_') {
+            return lexer_collect_id(lexer);
         }
 
-        if (lexer->c == '"') {
-            token_t* token = lexer_collect_string(lexer);
-            return token;
+        if (isdigit(lexer->c)) {
+            return lexer_collect_number(lexer); // Assuming you have a function to collect numbers
         }
+
 
         switch (lexer->c) {
-            case '=': return lexer_advance_with_token(lexer, init_token(TOKEN_ASSIGN, lexer_get_current_char_as_string(lexer))); break;
-            case ';': return lexer_advance_with_token(lexer, init_token(TOKEN_SEMI, lexer_get_current_char_as_string(lexer))); break;
-            case '(': return lexer_advance_with_token(lexer, init_token(TOKEN_LPAREN, lexer_get_current_char_as_string(lexer))); break;
-            case ')': return lexer_advance_with_token(lexer, init_token(TOKEN_RPAREN, lexer_get_current_char_as_string(lexer))); break;
-            case '{': return lexer_advance_with_token(lexer, init_token(TOKEN_LBRACE, lexer_get_current_char_as_string(lexer))); break;
-            case '}': return lexer_advance_with_token(lexer, init_token(TOKEN_RBRACE, lexer_get_current_char_as_string(lexer))); break;
-            case ',': return lexer_advance_with_token(lexer, init_token(TOKEN_COMMA, lexer_get_current_char_as_string(lexer))); break;
+            case '"': return lexer_collect_string(lexer);
+            case '(': return lexer_advance_with_token(lexer, init_token(TOKEN_LPAREN, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
+            case ')': return lexer_advance_with_token(lexer, init_token(TOKEN_RPAREN, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
+            case '{': return lexer_advance_with_token(lexer, init_token(TOKEN_LBRACE, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
+            case '}': return lexer_advance_with_token(lexer, init_token(TOKEN_RBRACE, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
+            case ';': return lexer_advance_with_token(lexer, init_token(TOKEN_SEMI, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
+            case ',': return lexer_advance_with_token(lexer, init_token(TOKEN_COMMA, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
+            case '=': return lexer_advance_with_token(lexer, init_token(TOKEN_ASSIGN, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
+            case '+': return lexer_advance_with_token(lexer, init_token(TOKEN_PLUS, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
+            case '-': return lexer_advance_with_token(lexer, init_token(TOKEN_MINUS, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
+            case '*': return lexer_advance_with_token(lexer, init_token(TOKEN_MUL, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
+            case '/': return lexer_advance_with_token(lexer, init_token(TOKEN_DIV, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
         }
+
+        // If we reach here, we encountered an unexpected character
+        char* unexpected_char = lexer_get_current_char_as_string(lexer);
+        printf("Unexpected character '%s' at line %d, position %d\n", unexpected_char, lexer->line, lexer->pos);
+        free(unexpected_char);
+        exit(1);
     }
-    return init_token(TOKEN_EOF, "\0");
+
+    return init_token(TOKEN_EOF, "", lexer->line, lexer->pos);
 }
 
-
-/*
-The lexer_collect_string function collect String Characters: A while loop is used to collect characters until 
-the closing double quote ("):
-For each character, it gets the current character as a string.
-The value string is reallocated to accommodate the new character.
-The new character is concatenated to value.
-
-NB : this function can be optimized in the future by addin
-Buffer Size Management: Preallocate a larger buffer and resize only when necessary.
-Manual Concatenation: Avoid calling strcat and manage the string concatenation manually.
-*/
-
-token_t* lexer_collect_string(lexer_t* lexer){
-    lexer_advance(lexer);
-    char* value = calloc(1,sizeof(char));
-    value[0] = '\0';
-    while(lexer->c != '"'){
+token_t* lexer_collect_string(lexer_t* lexer) {
+    lexer_advance(lexer); // Skip the opening quote
+    char* value = calloc(1, sizeof(char));
+    while (lexer->c != '"' && lexer->c != '\0') {
         char* s = lexer_get_current_char_as_string(lexer);
-        value = realloc(value,(strlen(value)+strlen(s)+1)*sizeof(char));
-        strcat(value,s);
+        value = realloc(value, (strlen(value) + strlen(s) + 1) * sizeof(char));
+        strcat(value, s);
+        free(s);
         lexer_advance(lexer);
     }
-    lexer_advance(lexer);
-    return init_token(TOKEN_STRING , value);
+
+    lexer_advance(lexer); // Skip the closing quote
+    return init_token(TOKEN_STRING, value, lexer->line, lexer->pos);
 }
 
-token_t* lexer_collect_id(lexer_t* lexer){
-    char* value = calloc(1,sizeof(char));
-    value[0] = '\0';
-    while(isalnum(lexer->c)){
+token_t* lexer_collect_number(lexer_t* lexer) {
+    char* value = calloc(1, sizeof(char)); // Allocate initial memory
+    int is_float = 0; // Flag to indicate if we encounter a decimal point
+    
+    while (isdigit(lexer->c) || lexer->c == '.') {
+        if (lexer->c == '.') {
+            if (is_float) {
+                // Multiple decimal points, invalid number
+                printf("Unexpected character '.' at line %d, position %d\n", lexer->line, lexer->pos);
+                free(value);
+                exit(1);
+            }
+            is_float = 1; // Set flag for floating point number
+        }
         char* s = lexer_get_current_char_as_string(lexer);
-        value = realloc(value,(strlen(value)+strlen(s)+1)*sizeof(char));
-        strcat(value,s);
+        value = realloc(value, (strlen(value) + strlen(s) + 1) * sizeof(char));
+        strcat(value, s);
+        free(s);
         lexer_advance(lexer);
     }
-    return init_token(TOKEN_IDENTIFIER , value);
+    // Return the token for number
+    return init_token(TOKEN_NUMBER, value, lexer->line, lexer->pos);
 }
 
-char* lexer_get_current_char_as_string(lexer_t* lexer){
-    char* str = calloc(1,sizeof(char));
+
+token_t* lexer_collect_id(lexer_t* lexer) {
+    char* value = calloc(1, sizeof(char));
+
+    // Ensure the identifier does not start with a digit
+    if (isdigit(lexer->c)) {
+        printf("Error: Identifiers cannot start with a digit at line %d, position %d\n", lexer->line, lexer->pos);
+        exit(1);
+    }
+
+    while (isalnum(lexer->c) || lexer->c == '_') {
+        char* s = lexer_get_current_char_as_string(lexer);
+        value = realloc(value, (strlen(value) + strlen(s) + 1) * sizeof(char));
+        strcat(value, s);
+        free(s);
+        lexer_advance(lexer);
+    }
+
+    // Additional checks can be added here if needed
+
+    return init_token(TOKEN_IDENTIFIER, value, lexer->line, lexer->pos);
+}
+
+token_t* lexer_advance_with_token(lexer_t* lexer, token_t* token) {
+    lexer_advance(lexer);
+    return token;
+}
+
+char* lexer_get_current_char_as_string(lexer_t* lexer) {
+    char* str = calloc(2, sizeof(char));
     str[0] = lexer->c;
     str[1] = '\0';
     return str;
-}
-
-token_t* lexer_advance_with_token(lexer_t* lexer,token_t* token){
-    lexer_advance(lexer);
-    return token;
 }

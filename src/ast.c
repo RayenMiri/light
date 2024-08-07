@@ -31,10 +31,14 @@ ast_t* init_ast(int type) {
 
     ast->string_value = NULL;
     
+    ast->number_value = 0;
 
     ast->compound_value = NULL;
     ast->compound_size = 0;
     
+    ast->binary_op_left = NULL;
+    ast->binary_op_right = NULL;
+    ast->binary_op_type = 0;
 
     
     return ast;
