@@ -1,7 +1,2 @@
-function test(x,y){
-    print(x,(y+x));
-    print(y)
-    var x = "test";
-}
-test((12+12),(14+18));
-print((12+12))
+var x = 152;
+print((152+x));
