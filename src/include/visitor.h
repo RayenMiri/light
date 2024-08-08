@@ -30,6 +30,7 @@ ast_t* visitor_visit_ast_func_call(visitor_t* visitor, ast_t* node);
 
 ast_t* visitor_visit_ast_func_def(visitor_t* visitor, ast_t* node);
 
+ast_t* visitor_visit_if_statement(visitor_t* visitor, ast_t* node);
     
 char* process_escaped_sequences(const char* str);
 

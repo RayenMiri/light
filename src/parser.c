@@ -69,9 +69,9 @@ ast_t* parser_parse_statements(parser_t* parser, scope_t* scope) {
 }
 
 ast_t* parser_parse_statement(parser_t* parser, scope_t* scope) {
-    printf("statemet \n ");
     switch (parser->current_token->type) {
         case TOKEN_IDENTIFIER: return parser_parse_identifier(parser, scope);
+        case TOKEN_IF: return parser_parse_if_statement(parser,scope);
         default: {
             char error_message[100];
             snprintf(error_message, sizeof(error_message),
@@ -85,8 +85,6 @@ ast_t* parser_parse_statement(parser_t* parser, scope_t* scope) {
 }
 
 ast_t* parser_parse_exp(parser_t* parser, scope_t* scope) {
-    printf("exp \n ");
-
     switch (parser->current_token->type) {
         case TOKEN_STRING: return parser_parse_string(parser, scope);
         case TOKEN_NUMBER : return parser_parse_number(parser,scope);
@@ -106,12 +104,11 @@ ast_t* parser_parse_exp(parser_t* parser, scope_t* scope) {
 ast_t* parser_parse_func_call(parser_t* parser, scope_t* scope) {
     ast_t* func_call = init_ast(ast_func_call);
     func_call->func_call_name = parser->prev_token->value;
-    printf("f name %s\n",func_call->func_call_name);
     func_call->func_call_args = NULL;
     func_call->func_call_args_size = 0;
-
+    
     parser_consume(parser, TOKEN_LPAREN);
-
+   
     bool is_first_arg = true;
 
     while (parser->current_token->type != TOKEN_RPAREN) {
@@ -120,25 +117,23 @@ ast_t* parser_parse_func_call(parser_t* parser, scope_t* scope) {
                 parser_consume(parser, TOKEN_COMMA);
             } 
         }
-
+        printf("current args token type : %d\n",parser->current_token->type);
         ast_t* ast_exp = NULL;
         switch (parser->current_token->type) {
             
+            case TOKEN_IDENTIFIER:
+            case TOKEN_NUMBER:
             case TOKEN_LPAREN:
-           
-                printf("Parsing math expression \n");
                 ast_exp = parser_parse_expression(parser, scope);
                 break;
-            // Add other cases if needed
             default:
-                printf("Parsing normal expression \n");
                 ast_exp = parser_parse_exp(parser, scope);
                 break;
         }
 
         if (ast_exp == NULL) {
             fprintf(stderr, "Error: Failed to parse argument expression.\n");
-            return NULL; // Handle the error accordingly
+            return NULL; // Handle the error accordingly (later because it's not buggy and not a priority for now)
         }
 
         func_call->func_call_args_size += 1;
@@ -149,9 +144,6 @@ ast_t* parser_parse_func_call(parser_t* parser, scope_t* scope) {
         func_call->func_call_args[func_call->func_call_args_size - 1] = ast_exp;
 
         is_first_arg = false;
-
-        // Print token information for debugging
-        printf("Next token: type %d, value '%s'\n", parser->current_token->type, parser->current_token->value);
     }
 
     parser_consume(parser, TOKEN_RPAREN);
@@ -199,18 +191,27 @@ ast_t* parser_parse_func_definition(parser_t* parser, scope_t* scope) {
 }
 
 ast_t* parser_parse_variable(parser_t* parser, scope_t* scope) {
-    
     char* token_value = parser->current_token->value;
     parser_consume(parser, TOKEN_IDENTIFIER);
-    
-    if (parser->current_token->type == TOKEN_LPAREN) {
+
+    if(parser->current_token->type == TOKEN_ASSIGN) {
+        parser_consume(parser,TOKEN_ASSIGN);
+        
+        ast_t* var_def = init_ast(ast_variable_assign);
+        var_def->variable_def_name = token_value;
+        var_def->variable_def_var_value =parser_parse_exp(parser,scope);
+        var_def->scope = scope;
+        return var_def;
+    } else if (parser->current_token->type == TOKEN_LPAREN) {
         return parser_parse_func_call(parser, scope);
+    }else{
+        ast_t* ast_var = init_ast(ast_variable);
+        ast_var->variable_name = token_value;
+        ast_var->scope = scope;
+        return ast_var;
     }
     
-    ast_t* ast_var = init_ast(ast_variable);
-    ast_var->variable_name = token_value;
-    ast_var->scope = scope;
-    return ast_var;
+    
 }
 
 ast_t* parser_parse_variable_definition(parser_t* parser, scope_t* scope) {
@@ -222,19 +223,13 @@ ast_t* parser_parse_variable_definition(parser_t* parser, scope_t* scope) {
     ast_t* var_value;
     
     // Determine if the value is a mathematical expression or a direct value
-    if (parser->current_token->type == TOKEN_NUMBER || parser->current_token->type == TOKEN_IDENTIFIER) {
-        // Direct value (number or string)
-        printf("math \n ");
+    if (parser->current_token->type == TOKEN_NUMBER 
+    || parser->current_token->type == TOKEN_IDENTIFIER 
+    || parser->current_token->type == TOKEN_LPAREN) {
+        // Mathematical expression or complex expression
         var_value = parser_parse_expression(parser, scope);
        
-    } else if (parser->current_token->type == TOKEN_LPAREN ||
-               parser->current_token->type == TOKEN_NUMBER ||
-               parser->current_token->type == TOKEN_IDENTIFIER||
-               parser->current_token->type == TOKEN_STRING
-               ) {
-        printf("not math \n ");
-
-        // Mathematical expression or complex expression
+    } else if (parser->current_token->type == TOKEN_STRING) {
         var_value = parser_parse_exp(parser, scope);
     } else {
         // Handle unexpected tokens
@@ -265,11 +260,11 @@ ast_t* parser_parse_string(parser_t* parser, scope_t* scope) {
 }
 
 ast_t* parser_parse_number(parser_t* parser, scope_t* scope) {
+    
     ast_t* number_node = init_ast(ast_number);
 
     // Convert the token value to a double
     number_node->number_value = atof(parser->current_token->value);
-    
     parser_consume(parser, TOKEN_NUMBER);
 
     number_node->scope = scope;
@@ -283,13 +278,16 @@ ast_t* parser_parse_identifier(parser_t* parser, scope_t* scope) {
         return parser_parse_variable_definition(parser, scope);
     } else if (strcmp(parser->current_token->value, "function") == 0) {
         return parser_parse_func_definition(parser, scope);
-    } else {
+    }else if(strcmp(parser->current_token->value, "if") == 0) {
+        return parser_parse_if_statement(parser,scope);
+    }else {
         return parser_parse_variable(parser, scope);
     }
 }
 
 ast_t* parser_parse_factor(parser_t* parser, scope_t* scope) {
     // Handle numbers, strings, identifiers, etc.
+    
     switch (parser->current_token->type) {
         case TOKEN_NUMBER:
             return parser_parse_number(parser, scope);
@@ -307,6 +305,7 @@ ast_t* parser_parse_factor(parser_t* parser, scope_t* scope) {
 }
 
 ast_t* parser_parse_term(parser_t* parser, scope_t* scope) {
+    
     ast_t* left = parser_parse_factor(parser, scope);
 
     while (parser->current_token->type == TOKEN_MUL || parser->current_token->type == TOKEN_DIV) {
@@ -326,9 +325,12 @@ ast_t* parser_parse_term(parser_t* parser, scope_t* scope) {
 }
 
 ast_t* parser_parse_expression(parser_t* parser, scope_t* scope) {
+    
     ast_t* left = parser_parse_term(parser, scope);
-
-    while (parser->current_token->type == TOKEN_PLUS || parser->current_token->type == TOKEN_MINUS) {
+    
+    while (parser->current_token->type == TOKEN_PLUS
+        || parser->current_token->type == TOKEN_MINUS 
+        || parser->current_token->type == TOKEN_EQ) {
         int operator_type = parser->current_token->type;
         parser_consume(parser, operator_type);
 
@@ -343,3 +345,46 @@ ast_t* parser_parse_expression(parser_t* parser, scope_t* scope) {
 
     return left;
 }
+
+ast_t* parser_parse_condition(parser_t* parser , scope_t* scope){
+     
+}
+
+ast_t* parser_parse_if_statement(parser_t* parser, scope_t* scope) {
+
+    parser_consume(parser, TOKEN_IF);          // Consume "if"
+    parser_consume(parser, TOKEN_LPAREN);      // Consume "("
+    ast_t* condition = parser_parse_expression(parser, scope); // Parse the condition expression
+    parser_consume(parser, TOKEN_RPAREN);      // Consume ")"
+    // Expect a block or single statement here
+    parser_consume(parser, TOKEN_LBRACE);      // Consume "{"
+    ast_t* if_body = parser_parse_statements(parser, scope); // Parse the body of the if statement
+    parser_consume(parser, TOKEN_RBRACE);      // Consume "}"
+
+    ast_t* if_ast = init_ast(ast_if);          // Initialize the AST node for an "if" statement
+    if_ast->condition = condition;
+    if_ast->body = if_body;
+    if_ast->scope = scope;
+    printf("if_ast : %p\n",ast_if);
+
+    /*Handle optional "else" part
+    if (parser->current_token->type == TOKEN_ELSE) {
+        parser_consume(parser, TOKEN_ELSE);
+        if (parser->current_token->type == TOKEN_LBRACE) {
+            // If there is a block after "else"
+            parser_consume(parser, TOKEN_LBRACE);
+            ast_t* else_branch = parser_parse_statements(parser, scope);
+            parser_consume(parser, TOKEN_RBRACE);
+            if_ast->if_else_branch = else_branch;
+        } else {
+            // If it's a single statement after "else"
+            ast_t* else_branch = parser_parse_statement(parser, scope);
+            if_ast->if_else_branch = else_branch;
+        }
+    } else {
+        if_ast->if_else_branch = NULL;
+    }
+    */
+    return if_ast;
+}
+

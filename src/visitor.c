@@ -5,10 +5,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-
+#include <stdbool.h>
 
 //predefined functions
 static ast_t* pre_defined_func_print(visitor_t* visitor, ast_t** args, int args_size) {
+    printf("print func\n");
     for (int i = 0; i < args_size; i++) {
         ast_t* visited_ast = visitor_visit(visitor, args[i]);
 
@@ -22,8 +23,16 @@ static ast_t* pre_defined_func_print(visitor_t* visitor, ast_t** args, int args_
             case ast_variable_def:
                 {
                     // Declare var_value inside a block
+                   
                     ast_t* var_value = visitor_visit(visitor, visited_ast->variable_def_var_value);
                     printf("%s", var_value->string_value);
+                }
+                break;
+            case ast_bool:
+                {
+                    visited_ast->bool_value == 1 ?
+                    printf("true"):
+                    printf("false");
                 }
                 break;
             default:
@@ -41,13 +50,18 @@ visitor_t* init_visitor() {
 }
 
 ast_t* visitor_visit(visitor_t* visitor, ast_t* node) {
+    printf("visitor visit %d\n",node->type);
     switch (node->type) {
         case ast_variable_def:
             return visitor_visit_ast_variable_def(visitor, node);
         case ast_variable:
             return visitor_visit_ast_variable(visitor, node);
+        case ast_variable_assign:
+            return visitor_visit_ast_variable_def(visitor, node);
         case ast_binary_op:
-            return visitor_visit_ast_binary_op(visitor, node);
+            return visitor_visit_ast_binary_op(visitor,node);
+        case ast_if:
+            return visitor_visit_if_statement(visitor, node);
         case ast_string:
             return visitor_visit_ast_string(visitor, node);
         case ast_number:
@@ -68,13 +82,26 @@ ast_t* visitor_visit(visitor_t* visitor, ast_t* node) {
 }
 
 ast_t* visitor_visit_ast_variable_def(visitor_t* visitor, ast_t* node) {
-    // Handle variable definition
-    scope_set_variable_definition(node->scope,node);
+    // Check if the variable already exists in the scope
+    ast_t* existing_var_def = scope_get_variable_definition(node->scope, node->variable_def_name);
+
+    if (existing_var_def != NULL) {
+        // Variable exists, so update its value
+        existing_var_def->variable_def_var_value = node->variable_def_var_value;
+        printf("Updated existing variable: %s\n", node->variable_def_name);
+    } else {
+        // Variable does not exist, so add a new definition
+        scope_set_variable_definition(node->scope, node);
+        printf("Defined new variable: %s\n", node->variable_def_name);
+    }
+
     return node;
 }
 
+
 ast_t* visitor_visit_ast_variable(visitor_t* visitor, ast_t* node) {
     // Handle variable
+   
     ast_t* v_def = scope_get_variable_definition(node->scope,node->variable_name);
     if(v_def != NULL){
         return visitor_visit(visitor,v_def->variable_def_var_value);
@@ -87,18 +114,52 @@ ast_t* visitor_visit_ast_variable(visitor_t* visitor, ast_t* node) {
 // Handle expression nodes
 ast_t* visitor_visit_ast_binary_op(visitor_t* visitor, ast_t* node) {
     // Visit left and right operands
+    printf("Binary operation started\n");
+    
     ast_t* left = visitor_visit(visitor, node->binary_op_left);
     ast_t* right = visitor_visit(visitor, node->binary_op_right);
 
-    // Ensure operands are of type ast_number
-    if (left->type != ast_number || right->type != ast_number) {
-        printf("Error: Both operands must be numbers.\n");
-        exit(1);
+    // Determine the type of the operation
+    int node_type = node->binary_op_type - ast_binary_op - 3;
+
+    printf("Node type: %d\n", node_type);
+
+    // Handle equality and other comparison operations
+    if (node_type >= OPERATOR_EQ) {
+        bool condition_res = false;
+
+        switch (node_type) {
+            case 9:
+                condition_res = left->number_value == right->number_value;
+                break;
+            /*case OPERATOR_NEQ:
+                condition_res = left->number_value != right->number_value;
+                break;
+            case OPERATOR_LT:
+                condition_res = left->number_value < right->number_value;
+                break;
+            case OPERATOR_LTE:
+                condition_res = left->number_value <= right->number_value;
+                break;
+            case OPERATOR_GT:
+                condition_res = left->number_value > right->number_value;
+                break;
+            case OPERATOR_GTE:
+                condition_res = left->number_value >= right->number_value;
+                break;*/
+            default:
+                printf("Unsupported comparison operator: %d\n", node->binary_op_type);
+                exit(1);
+        }
+
+        ast_t* result_node = init_ast(ast_bool);
+        result_node->bool_value = condition_res;
+        return result_node;
     }
-    // Perform the operation based on the operator type
+
+    // Handle arithmetic operations
     double result = 0.0;
-   
-    int node_type = node->binary_op_type-(ast_binary_op+4);
+
     switch (node_type) {
         case OPERATOR_PLUS:
             result = left->number_value + right->number_value;
@@ -124,15 +185,39 @@ ast_t* visitor_visit_ast_binary_op(visitor_t* visitor, ast_t* node) {
             result = fmod(left->number_value, right->number_value);
             break;
         default:
-            printf("Unsupported operator: %d\n", node->binary_op_type);
+            printf("Unsupported arithmetic operator: %d\n", node->binary_op_type);
             exit(1);
     }
 
-    // Return the result as a new AST node
     ast_t* result_node = init_ast(ast_number);
     result_node->number_value = result;
     return result_node;
 }
+
+ast_t* visitor_visit_if_statement(visitor_t* visitor, ast_t* node) {
+    printf("If statement started\n");
+
+    // Evaluate the condition
+    ast_t* condition = visitor_visit(visitor, node->condition);
+
+    if (condition->type != ast_bool) {
+        printf("Error: If condition must evaluate to a boolean.\n");
+        exit(1);
+    }
+
+    // Check the condition result
+    if (condition->bool_value) {
+        // Execute the 'then' branch
+        return visitor_visit(visitor, node->body);
+    } /*else if (node->else_body) {
+        // Execute the 'else' branch (if it exists)
+        return visitor_visit(visitor, node->else_body);
+    }*/
+
+    // If there's no else branch and the condition is false, return a null node or empty result
+    return init_ast(ast_noop);
+}
+
 
 
 ast_t* visitor_visit_ast_string(visitor_t* visitor, ast_t* node) {
@@ -181,15 +266,6 @@ ast_t* visitor_visit_ast_func_call(visitor_t* visitor, ast_t* node) {
     for (int i = 0; i < node->func_call_args_size; i++) {
         ast_t* arg = node->func_call_args[i];
         ast_t* evaluated_arg = visitor_visit(visitor, arg);
-
-        // Check if the argument is a string or expression and handle accordingly
-        if (evaluated_arg->type == ast_string) {
-            printf("Argument %d is a string: %s\n", i, evaluated_arg->string_value);
-        } else if (evaluated_arg->type == ast_binary_op) {
-            printf("Argument %d is an expression\n", i);
-        } else {
-            printf("Argument %d is of unknown type\n", i);
-        }
 
         // Update the scope with the evaluated argument
         ast_t* ast_var = (ast_t*)f_def->func_def_args[i];

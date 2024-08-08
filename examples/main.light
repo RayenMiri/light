@@ -1,2 +1,10 @@
-var x = 152;
-print((152+x));
+var a = 10;
+function test(){
+    if(a == 10){
+    var x = 17;
+    print(x);
+    }
+}
+
+
+print(x);

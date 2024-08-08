@@ -58,11 +58,19 @@ token_t* lexer_get_next_token(lexer_t* lexer) {
             case '}': return lexer_advance_with_token(lexer, init_token(TOKEN_RBRACE, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
             case ';': return lexer_advance_with_token(lexer, init_token(TOKEN_SEMI, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
             case ',': return lexer_advance_with_token(lexer, init_token(TOKEN_COMMA, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
-            case '=': return lexer_advance_with_token(lexer, init_token(TOKEN_ASSIGN, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
+            case '=': 
+                if (lexer_peek(lexer, 1) == '=') {
+                    
+                    lexer_advance(lexer);
+                    
+                    return lexer_advance_with_token(lexer, init_token(TOKEN_EQ, "==", lexer->line, lexer->pos));
+                }
+                return lexer_advance_with_token(lexer, init_token(TOKEN_ASSIGN, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
             case '+': return lexer_advance_with_token(lexer, init_token(TOKEN_PLUS, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
             case '-': return lexer_advance_with_token(lexer, init_token(TOKEN_MINUS, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
             case '*': return lexer_advance_with_token(lexer, init_token(TOKEN_MUL, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
             case '/': return lexer_advance_with_token(lexer, init_token(TOKEN_DIV, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
+            
         }
 
         // If we reach here, we encountered an unexpected character
@@ -114,6 +122,9 @@ token_t* lexer_collect_number(lexer_t* lexer) {
     return init_token(TOKEN_NUMBER, value, lexer->line, lexer->pos);
 }
 
+/*token_t* lexer_collect_bool(lexer_t* lexer) {
+    return init_token(TOKEN_BOOL, value, lexer->line, lexer->pos);
+}*/
 
 token_t* lexer_collect_id(lexer_t* lexer) {
     char* value = calloc(1, sizeof(char));
@@ -131,6 +142,12 @@ token_t* lexer_collect_id(lexer_t* lexer) {
         free(s);
         lexer_advance(lexer);
     }
+    printf("token value is %s \n",value);
+    if (strcmp(value, "if") == 0) return init_token(TOKEN_IF, value, lexer->line, lexer->pos);
+    if (strcmp(value, "while") == 0) return init_token(TOKEN_WHILE, value, lexer->line, lexer->pos);
+    if (strcmp(value, "return") == 0) return init_token(TOKEN_RETURN, value, lexer->line, lexer->pos);
+    if (strcmp(value, "true") == 0) return init_token(TOKEN_BOOL, value, lexer->line, lexer->pos);
+    if (strcmp(value, "false") == 0) return init_token(TOKEN_BOOL, value, lexer->line, lexer->pos);
 
     // Additional checks can be added here if needed
 
@@ -147,4 +164,18 @@ char* lexer_get_current_char_as_string(lexer_t* lexer) {
     str[0] = lexer->c;
     str[1] = '\0';
     return str;
+}
+
+
+// Peek ahead in the input buffer
+char lexer_peek(lexer_t* lexer, int offset) {
+    int peek_pos = lexer->i + offset;
+    // Check if the peek position is within the bounds of the input
+    if (peek_pos >= strlen(lexer->contents)) {
+        return '\0'; // End of input
+    }
+
+    // Return the character at the peek position
+    printf("lexer content peek %c\n",lexer->contents[peek_pos]);
+    return lexer->contents[peek_pos];
 }

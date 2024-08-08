@@ -50,6 +50,10 @@ ast_t* parser_parse_string(parser_t* parser,scope_t* scope);
 
 ast_t* parser_parse_number(parser_t* parser,scope_t* scope);
 
+ast_t* parser_parse_condition(parser_t* parser , scope_t* scope);
+
+ast_t* parser_parse_if_statement(parser_t* parser,scope_t* scope);
+
 
 
 

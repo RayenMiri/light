@@ -41,6 +41,8 @@ ast_t* scope_get_function_definition(scope_t* scope, const char* fname){
 }
 
 ast_t* scope_set_variable_definition(scope_t* scope, ast_t* vdef){
+    //ast_t* existing_vdef = scope_get_variable_definition(scope,vdef->variable_def_name);
+    //printf("existing var def  in scope get var is : %s\n",existing_vdef->variable_def_name);
     if (scope->variable_definitions == NULL){
 
         scope->variable_definitions = calloc(1, sizeof(struct ast*));
@@ -63,7 +65,7 @@ ast_t* scope_get_variable_definition(scope_t* scope, const char* name){
     for (int i = 0; i < scope->variable_definitions_size; i++)
     {
         ast_t* v_def = scope->variable_definitions[i];
-        
+        printf("var[%d] = %s \n",i,scope->variable_definitions[i]->variable_def_name);
         if(strcmp(v_def->variable_def_name,name) == 0){
             return v_def;
         }

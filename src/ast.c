@@ -33,6 +33,8 @@ ast_t* init_ast(int type) {
     
     ast->number_value = 0;
 
+    ast->bool_value = true;
+
     ast->compound_value = NULL;
     ast->compound_size = 0;
     
@@ -40,6 +42,8 @@ ast_t* init_ast(int type) {
     ast->binary_op_right = NULL;
     ast->binary_op_type = 0;
 
+    ast->condition = NULL;
+    ast->body= NULL;
     
     return ast;
 
