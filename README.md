@@ -77,6 +77,15 @@ function function_name(parameters) {
 }
 ```
 
+## Run
+Running is only available for Windows users for now so , if you want to run or test the code just type :
+
+
+```sh
+mingw32-make run file=.\examples\main.light
+
+```
+
 ### Example
 
 ```light
