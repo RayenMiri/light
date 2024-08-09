@@ -25,17 +25,6 @@ int main(int argc, char* argv[])
             }
         }
     }
-    else {
-        char input[MAX_LIMIt];
-        while(1){
-            
-            fgets(input,MAX_LIMIt, stdin);
-            lexer_t* lexer = init_lexer(input);
-            parser_t* parser = init_parser(lexer);
-            ast_t* root = parser_parse(parser, parser->scope);
-            visitor_t* visitor = init_visitor();
-            visitor_visit(visitor, root);
-        }
-    }
+    
     return 0;
 }
