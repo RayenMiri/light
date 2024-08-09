@@ -5,7 +5,8 @@
 
 typedef struct visitor
 {
-    scope_t * current_scope;
+    scope_t* current_scope;
+    scope_t* global_scope; // Add a reference to the global scope
     
 }visitor_t;
 

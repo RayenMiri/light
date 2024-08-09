@@ -1,16 +1,18 @@
-function test(){
-    var x = 10;
-    print(x);
-    if(x == 10){
-        var z = 51541555115;
+function gest (a){
+    print("gest func");
+    
+}
+
+function test (a){
+    print(a);
+    if(a>0){
+        test(a-1);
     }
-    print("z value is : ",z);
+    
 }
 
-test();
-var y = 10;
-if(y==10){
-    var c = 1000;
-}
+test(20);
+gest(17);
 
-print(c);
+
+

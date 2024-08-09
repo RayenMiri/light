@@ -166,7 +166,6 @@ token_t* lexer_collect_id(lexer_t* lexer) {
         free(s);
         lexer_advance(lexer);
     }
-    printf("token value is %s \n",value);
     if (strcmp(value, "if") == 0) return init_token(TOKEN_IF, value, lexer->line, lexer->pos);
     if (strcmp(value, "while") == 0) return init_token(TOKEN_WHILE, value, lexer->line, lexer->pos);
     if (strcmp(value, "return") == 0) return init_token(TOKEN_RETURN, value, lexer->line, lexer->pos);
@@ -200,6 +199,5 @@ char lexer_peek(lexer_t* lexer, int offset) {
     }
 
     // Return the character at the peek position
-    printf("lexer content peek %c\n",lexer->contents[peek_pos]);
     return lexer->contents[peek_pos];
 }

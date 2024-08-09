@@ -117,7 +117,6 @@ ast_t* parser_parse_func_call(parser_t* parser, scope_t* scope) {
                 parser_consume(parser, TOKEN_COMMA);
             } 
         }
-        printf("current args token type : %d\n",parser->current_token->type);
         ast_t* ast_exp = NULL;
         switch (parser->current_token->type) {
             
@@ -147,6 +146,7 @@ ast_t* parser_parse_func_call(parser_t* parser, scope_t* scope) {
     }
 
     parser_consume(parser, TOKEN_RPAREN);
+    
     func_call->scope = scope;
     return func_call;
 }
@@ -372,7 +372,6 @@ ast_t* parser_parse_if_statement(parser_t* parser, scope_t* scope) {
     if_ast->if_condition = condition;
     if_ast->if_body = if_body;
     if_ast->scope = scope;
-    printf("if_ast : %p\n",ast_if);
 
     /*Handle optional "else" part
     if (parser->current_token->type == TOKEN_ELSE) {
