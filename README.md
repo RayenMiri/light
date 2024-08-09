@@ -1,3 +1,7 @@
+Certainly! To distinguish between local and global variables in Light, we need to elaborate on how each type of variable is used and scoped within the program. Here’s the updated documentation with a section explaining the distinction between local and global variables:
+
+---
+
 # Documentation for Light
 
 ## Introduction
@@ -9,7 +13,7 @@ Light is a simple, beginner-friendly programming language designed for beginners
 Light uses a syntax that is simple and intuitive, making it easy for beginners to learn. The basic syntax rules include:
 
 - **Identifiers**: Names for variables, functions, etc., which must start with a letter and can contain letters, digits, and underscores.
-- **Keywords**: Reserved words that have special meaning in Light. Examples include `var` and `function`.
+- **Keywords**: Reserved words that have special meaning in Light. Examples include `var`, `function`, and `if`.
 
 ## Data Types
 
@@ -35,12 +39,48 @@ Variables are used to store data. In Light, variables are declared using the fol
 var variable_name = value;
 ```
 
-### Example
+### Local vs Global Variables
+
+Variables in Light can be classified into **local** and **global** based on their scope and accessibility.
+
+### Global Variables
+
+- **Definition**: Global variables are declared outside of any function or block and are accessible throughout the entire program.
+- **Scope**: Available everywhere in the program, including inside functions or blocks.
+
+### Example of Global Variable
 
 ```light
-var age = 25;
-var greeting = "Hello";
+var globalVar = 100;
+
+function showGlobal() {
+    print(globalVar);
+}
+
+showGlobal(); // Output: 100.000000
 ```
+
+### Local Variables
+
+- **Definition**: Local variables are declared inside a function or block and are only accessible within that function or block.
+- **Scope**: Limited to the function or block where they are declared.
+
+### Example of Local Variable
+
+```light
+function localExample() {
+    var localVar = 50;
+    print(localVar);
+}
+
+localExample(); // Output: 50.000000
+// print(localVar); // Error: Undefined variable ‘localVar’ 
+```
+
+### Important Points
+
+- **Global variables**: Can be used by any function or block within the program.
+- **Local variables**: Can only be used within the function or block where they are declared and are not accessible outside of it.
 
 ## Expressions and Operators
 
@@ -60,12 +100,41 @@ print(sum); // Output: 8.000000
 Statements are instructions that perform actions. The primary types of statements in Light include:
 
 - **Assignment**: Assigns a value to a variable.
+- **Conditional (If)**: Executes code based on a condition.
 
-### Example
+### Example of Assignment
 
 ```light
 var x = 12;
 ```
+
+## Conditional Statements (If)
+
+Light supports `if` statements to allow conditional execution of code. The syntax for an `if` statement is as follows:
+
+```light
+if (condition) {
+    // code to be executed if condition is true
+}
+```
+
+### Example of If Statement
+
+```light
+var age = 18;
+
+if (age >= 18) {
+    print("You are an adult.");
+} else {
+    print("You are not an adult.");
+}
+```
+
+### Explanation:
+
+- The `if` statement checks the condition inside the parentheses.
+- If the condition evaluates to `true`, the code inside the `{}` block following the `if` is executed.
+- If there is an `else` block, it will execute if the condition evaluates to `false`.
 
 ## Functions
 
@@ -75,15 +144,6 @@ Functions are blocks of code that perform specific tasks. They are defined using
 function function_name(parameters) {
     // function body
 }
-```
-
-## Run
-Running is only available for Windows users for now so , if you want to run or test the code just type :
-
-
-```sh
-mingw32-make run file=.\examples\main.light
-
 ```
 
 ### Example
@@ -111,9 +171,10 @@ var globalVar = 10;
 function example() {
     var localVar = 5;
     print(globalVar);
+    print(localVar);
 }
 
-example(); // Output: 10.000000
+example(); // Output: 10.000000, 5.000000
 ```
 
 ## Examples of Programs in Light
@@ -137,6 +198,35 @@ function greet(name) {
 }
 
 greet("Alice"); // Output: Hello, Alice
+```
+
+### Example 3: Conditional Statement
+
+```light
+var temperature = 30;
+
+if (temperature > 25) {
+    print("It's hot outside!");
+} else {
+    print("It's cool outside!");
+}
+```
+
+### Example 4: Local vs Global Variables
+
+```light
+var globalVar = 10;
+
+function testScope() {
+    var localVar = 5;
+    print(globalVar); // Output: 10.000000
+    print(localVar);  // Output: 5.000000
+}
+
+testScope();
+
+print(globalVar); // Output: 10.000000
+// print(localVar); // Error: Undefined variable 'localVar'
 ```
 
 This documentation provides a comprehensive overview of Light, covering its syntax, features, and usage. For more detailed information, send me an email at rayenmiri000@gmail.com.
