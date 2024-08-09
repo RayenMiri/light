@@ -66,6 +66,30 @@ token_t* lexer_get_next_token(lexer_t* lexer) {
                     return lexer_advance_with_token(lexer, init_token(TOKEN_EQ, "==", lexer->line, lexer->pos));
                 }
                 return lexer_advance_with_token(lexer, init_token(TOKEN_ASSIGN, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
+            case '<': 
+                if (lexer_peek(lexer, 1) == '=') {
+                    
+                    lexer_advance(lexer);
+                    
+                    return lexer_advance_with_token(lexer, init_token(TOKEN_LE, "<=", lexer->line, lexer->pos));
+                }
+                return lexer_advance_with_token(lexer, init_token(TOKEN_LT, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
+            case '>': 
+                if (lexer_peek(lexer, 1) == '=') {
+                    
+                    lexer_advance(lexer);
+                    
+                    return lexer_advance_with_token(lexer, init_token(TOKEN_GE, ">=", lexer->line, lexer->pos));
+                }
+                return lexer_advance_with_token(lexer, init_token(TOKEN_GT, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
+            case '!': 
+                if (lexer_peek(lexer, 1) == '=') {
+                    
+                    lexer_advance(lexer);
+                    
+                    return lexer_advance_with_token(lexer, init_token(TOKEN_NE, "!=", lexer->line, lexer->pos));
+                }
+                return lexer_advance_with_token(lexer, init_token(TOKEN_NOT, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
             case '+': return lexer_advance_with_token(lexer, init_token(TOKEN_PLUS, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
             case '-': return lexer_advance_with_token(lexer, init_token(TOKEN_MINUS, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));
             case '*': return lexer_advance_with_token(lexer, init_token(TOKEN_MUL, lexer_get_current_char_as_string(lexer), lexer->line, lexer->pos));

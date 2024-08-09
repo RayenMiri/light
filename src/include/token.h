@@ -31,6 +31,7 @@ typedef struct token {
         TOKEN_LE,   // <=
         TOKEN_GE,   // >=
         TOKEN_NE,   // !=
+        TOKEN_NOT,
         TOKEN_UNKNOWN,
     } type;
     char* value;

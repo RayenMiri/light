@@ -42,8 +42,13 @@ ast_t* init_ast(int type) {
     ast->binary_op_right = NULL;
     ast->binary_op_type = 0;
 
-    ast->condition = NULL;
-    ast->body= NULL;
+    ast->if_condition = NULL;
+    ast->if_body= NULL;
+    ast->else_if_branch = NULL;
+    ast->else_branch = NULL;
+
+    ast->while_condition = NULL;
+    ast->while_body = NULL;
     
     return ast;
 

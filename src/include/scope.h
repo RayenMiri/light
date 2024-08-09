@@ -4,6 +4,7 @@
 
 typedef struct scope
 {
+    struct scope** parent_scope; // Pointer to parent scope
     ast_t** function_definitions;
     size_t function_definitions_size;
 
@@ -12,6 +13,8 @@ typedef struct scope
 } scope_t;
 
 scope_t* init_scope();
+
+scope_t* init_scope_with_parent(scope_t** parent_scope);
 
 ast_t* scope_set_function_definition(scope_t* scope, ast_t* fdef);
 

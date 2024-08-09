@@ -10,7 +10,12 @@ typedef enum {
     OPERATOR_MULTIPLY,
     OPERATOR_DIVIDE,
     OPERATOR_MODULO,
-    OPERATOR_EQ
+    OPERATOR_EQ,
+    OPERATOR_LT,   // <
+    OPERATOR_GT,   // >
+    OPERATOR_LE,   // <=
+    OPERATOR_GE,   // >=
+    OPERATOR_NE,   // !=
     // Add other operators as needed
 } binary_op_type_t;
 
@@ -79,8 +84,15 @@ typedef struct ast {
     binary_op_type_t binary_op_type;
 
     // ast_if
-    struct ast* condition;
-    struct ast* body;    
+    struct ast* if_condition;
+    struct ast* if_body;
+    struct ast* else_if_branch;
+    struct ast* else_branch;
+    
+    //ast_while
+    struct ast* while_condition;
+    struct ast* while_body;
+
 } ast_t;
 
 // Initialize the AST

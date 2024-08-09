@@ -1,10 +1,16 @@
-var a = 10;
 function test(){
-    if(a == 10){
-    var x = 17;
+    var x = 10;
     print(x);
+    if(x == 10){
+        var z = 51541555115;
     }
+    print("z value is : ",z);
 }
 
+test();
+var y = 10;
+if(y==10){
+    var c = 1000;
+}
 
-print(x);
+print(c);

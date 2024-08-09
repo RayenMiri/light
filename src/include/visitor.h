@@ -1,10 +1,11 @@
 #ifndef VISITOR_H
 #define VISITOR_H
 #include "ast.h"
+#include "scope.h"
 
 typedef struct visitor
 {
-    
+    scope_t * current_scope;
     
 }visitor_t;
 

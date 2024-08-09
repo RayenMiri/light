@@ -7,7 +7,7 @@
 #include <math.h>
 #include <stdbool.h>
 
-//predefined functions
+// Predefined functions
 static ast_t* pre_defined_func_print(visitor_t* visitor, ast_t** args, int args_size) {
     printf("print func\n");
     for (int i = 0; i < args_size; i++) {
@@ -18,22 +18,15 @@ static ast_t* pre_defined_func_print(visitor_t* visitor, ast_t** args, int args_
                 printf("%s ", process_escaped_sequences(visited_ast->string_value));
                 break;
             case ast_number:
-                printf("%f ",visited_ast->number_value);
+                printf("%f ", visited_ast->number_value);
                 break;
-            case ast_variable_def:
-                {
-                    // Declare var_value inside a block
-                   
-                    ast_t* var_value = visitor_visit(visitor, visited_ast->variable_def_var_value);
-                    printf("%s", var_value->string_value);
-                }
+            case ast_variable_def: {
+                ast_t* var_value = visitor_visit(visitor, visited_ast->variable_def_var_value);
+                printf("%s", var_value->string_value);
                 break;
+            }
             case ast_bool:
-                {
-                    visited_ast->bool_value == 1 ?
-                    printf("true"):
-                    printf("false");
-                }
+                visited_ast->bool_value ? printf("true") : printf("false");
                 break;
             default:
                 printf("Unhandled type: %d\n", visited_ast->type);
@@ -44,13 +37,12 @@ static ast_t* pre_defined_func_print(visitor_t* visitor, ast_t** args, int args_
 
 visitor_t* init_visitor() {
     visitor_t* visitor = calloc(1, sizeof(visitor_t));
-    
-
+    visitor->current_scope = init_scope();
     return visitor;
 }
 
 ast_t* visitor_visit(visitor_t* visitor, ast_t* node) {
-    printf("visitor visit %d\n",node->type);
+    printf("visitor visit %d\n", node->type);
     switch (node->type) {
         case ast_variable_def:
             return visitor_visit_ast_variable_def(visitor, node);
@@ -59,7 +51,7 @@ ast_t* visitor_visit(visitor_t* visitor, ast_t* node) {
         case ast_variable_assign:
             return visitor_visit_ast_variable_def(visitor, node);
         case ast_binary_op:
-            return visitor_visit_ast_binary_op(visitor,node);
+            return visitor_visit_ast_binary_op(visitor, node);
         case ast_if:
             return visitor_visit_if_statement(visitor, node);
         case ast_string:
@@ -74,37 +66,53 @@ ast_t* visitor_visit(visitor_t* visitor, ast_t* node) {
             return visitor_visit_ast_func_call(visitor, node);
         case ast_func_def:
             return visitor_visit_ast_func_def(visitor, node);
-        
         default:
             printf("Uncaught statement of type %d\n", node->type);
             exit(1);
     }
 }
 
-ast_t* visitor_visit_ast_variable_def(visitor_t* visitor, ast_t* node) {
-    // Check if the variable already exists in the scope
-    ast_t* existing_var_def = scope_get_variable_definition(node->scope, node->variable_def_name);
+void visit_function_body(visitor_t* visitor, ast_t* function_body) {
+    printf("we are visiting function body\n");
+    scope_t* function_scope = init_scope_with_parent(visitor->current_scope);
+    if (!function_scope) {
+        printf("Failed to create function scope\n");
+        exit(1);
+    }
+    visitor->current_scope = function_scope;
+    
+    // Visit the function body
+    visitor_visit(visitor, function_body);
+    
+    // Revert back to the parent scope
+    visitor->current_scope = function_scope->parent_scope;
+    free(function_scope); // Free the function scope
+}
 
+
+ast_t* visitor_visit_ast_variable_def(visitor_t* visitor, ast_t* node) {
+    printf("Check if the variable already exists in the current scope or parent scope\n");
+    printf("visitor current scope %p\n",visitor->current_scope);
+    ast_t* existing_var_def = scope_get_variable_definition(visitor->current_scope, node->variable_def_name);
+    
     if (existing_var_def != NULL) {
         // Variable exists, so update its value
         existing_var_def->variable_def_var_value = node->variable_def_var_value;
         printf("Updated existing variable: %s\n", node->variable_def_name);
     } else {
-        // Variable does not exist, so add a new definition
-        scope_set_variable_definition(node->scope, node);
+        // Variable does not exist, so add a new definition in the current scope
+        scope_set_variable_definition(visitor->current_scope, node);
         printf("Defined new variable: %s\n", node->variable_def_name);
     }
 
     return node;
 }
 
-
 ast_t* visitor_visit_ast_variable(visitor_t* visitor, ast_t* node) {
-    // Handle variable
-   
-    ast_t* v_def = scope_get_variable_definition(node->scope,node->variable_name);
-    if(v_def != NULL){
-        return visitor_visit(visitor,v_def->variable_def_var_value);
+    // Attempt to resolve the variable in the current or parent scopes
+    ast_t* v_def = scope_get_variable_definition(visitor->current_scope, node->variable_name);
+    if (v_def != NULL) {
+        return visitor_visit(visitor, v_def->variable_def_var_value);
     }
     printf("Undefined variable %s\n", node->variable_name);
     exit(1);
@@ -129,24 +137,24 @@ ast_t* visitor_visit_ast_binary_op(visitor_t* visitor, ast_t* node) {
         bool condition_res = false;
 
         switch (node_type) {
+            case 7:
+                condition_res = left->number_value < right->number_value;
+                break;
+            case 8:
+                condition_res = left->number_value > right->number_value;
+                break;
             case 9:
                 condition_res = left->number_value == right->number_value;
                 break;
-            /*case OPERATOR_NEQ:
-                condition_res = left->number_value != right->number_value;
-                break;
-            case OPERATOR_LT:
-                condition_res = left->number_value < right->number_value;
-                break;
-            case OPERATOR_LTE:
+            case 10:
                 condition_res = left->number_value <= right->number_value;
                 break;
-            case OPERATOR_GT:
-                condition_res = left->number_value > right->number_value;
-                break;
-            case OPERATOR_GTE:
+            case 11:
                 condition_res = left->number_value >= right->number_value;
-                break;*/
+                break;
+            case 12:
+                condition_res = left->number_value != right->number_value;
+                break;
             default:
                 printf("Unsupported comparison operator: %d\n", node->binary_op_type);
                 exit(1);
@@ -198,7 +206,7 @@ ast_t* visitor_visit_if_statement(visitor_t* visitor, ast_t* node) {
     printf("If statement started\n");
 
     // Evaluate the condition
-    ast_t* condition = visitor_visit(visitor, node->condition);
+    ast_t* condition = visitor_visit(visitor, node->if_condition);
 
     if (condition->type != ast_bool) {
         printf("Error: If condition must evaluate to a boolean.\n");
@@ -208,24 +216,18 @@ ast_t* visitor_visit_if_statement(visitor_t* visitor, ast_t* node) {
     // Check the condition result
     if (condition->bool_value) {
         // Execute the 'then' branch
-        return visitor_visit(visitor, node->body);
-    } /*else if (node->else_body) {
-        // Execute the 'else' branch (if it exists)
-        return visitor_visit(visitor, node->else_body);
-    }*/
+        return visitor_visit(visitor, node->if_body);
+    }
 
     // If there's no else branch and the condition is false, return a null node or empty result
     return init_ast(ast_noop);
 }
-
-
 
 ast_t* visitor_visit_ast_string(visitor_t* visitor, ast_t* node) {
     return node;
 }
 
 ast_t* visitor_visit_ast_number(visitor_t* visitor, ast_t* node) {
-
     return node;
 }
 
@@ -247,7 +249,9 @@ ast_t* visitor_visit_ast_func_call(visitor_t* visitor, ast_t* node) {
         return pre_defined_func_print(visitor, node->func_call_args, node->func_call_args_size);
     }
 
-    ast_t* f_def = scope_get_function_definition(node->scope, node->func_call_name);
+    // Look for the function definition in the current or parent scopes
+    
+    ast_t* f_def = scope_get_function_definition(visitor->current_scope, node->func_call_name);
     if (f_def == NULL) {
         printf("Undefined function '%s'\n", node->func_call_name);
         exit(1);
@@ -256,38 +260,25 @@ ast_t* visitor_visit_ast_func_call(visitor_t* visitor, ast_t* node) {
     int args_difference = abs(f_def->func_def_args_size - node->func_call_args_size);
     if (args_difference == 1) {
         printf("'%s' missing %d required argument\n", node->func_call_name, args_difference);
-        exit(1);
     } else if (args_difference > 1) {
         printf("'%s' missing %d required arguments\n", node->func_call_name, args_difference);
-        exit(1);
     }
 
-    // Evaluate arguments and pass them to the function
-    for (int i = 0; i < node->func_call_args_size; i++) {
-        ast_t* arg = node->func_call_args[i];
-        ast_t* evaluated_arg = visitor_visit(visitor, arg);
-
-        // Update the scope with the evaluated argument
-        ast_t* ast_var = (ast_t*)f_def->func_def_args[i];
-        ast_t* ast_vardef = init_ast(ast_variable_def);
-        ast_vardef->variable_def_var_value = evaluated_arg;
-        ast_vardef->variable_def_name = (char*)calloc(strlen(ast_var->variable_name) + 1, sizeof(char));
-        strcpy(ast_vardef->variable_def_name, ast_var->variable_name);
-
-        scope_set_variable_definition(f_def->func_def_body->scope, ast_vardef);
+    for (int i = 0; i < f_def->func_def_args_size; i++) {
+        ast_t* arg_name = f_def->func_def_args[i];
+        ast_t* evaluated_arg = visitor_visit(visitor, node->func_call_args[i]);
+        scope_set_variable_definition(f_def->scope, evaluated_arg);
     }
 
-    return visitor_visit(visitor, f_def->func_def_body);
+    visit_function_body(visitor, f_def->func_def_body);
+    return init_ast(ast_noop);
 }
-
 
 ast_t* visitor_visit_ast_func_def(visitor_t* visitor, ast_t* node) {
-    // Handle function definition
-    scope_set_function_definition(node->scope,node);
+    printf("we are visiting a func def \n");
+    scope_set_function_definition(visitor->current_scope, node);
     return node;
 }
-
-
 
 // Function to process escape sequences in a string
 char* process_escaped_sequences(const char* str) {

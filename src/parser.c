@@ -330,7 +330,14 @@ ast_t* parser_parse_expression(parser_t* parser, scope_t* scope) {
     
     while (parser->current_token->type == TOKEN_PLUS
         || parser->current_token->type == TOKEN_MINUS 
-        || parser->current_token->type == TOKEN_EQ) {
+        || parser->current_token->type == TOKEN_EQ
+        || parser->current_token->type == TOKEN_NE
+        || parser->current_token->type == TOKEN_GT
+        || parser->current_token->type == TOKEN_LT
+        || parser->current_token->type == TOKEN_LE
+        || parser->current_token->type == TOKEN_GE
+        || parser->current_token->type == TOKEN_NE
+        ) {
         int operator_type = parser->current_token->type;
         parser_consume(parser, operator_type);
 
@@ -362,8 +369,8 @@ ast_t* parser_parse_if_statement(parser_t* parser, scope_t* scope) {
     parser_consume(parser, TOKEN_RBRACE);      // Consume "}"
 
     ast_t* if_ast = init_ast(ast_if);          // Initialize the AST node for an "if" statement
-    if_ast->condition = condition;
-    if_ast->body = if_body;
+    if_ast->if_condition = condition;
+    if_ast->if_body = if_body;
     if_ast->scope = scope;
     printf("if_ast : %p\n",ast_if);
 
