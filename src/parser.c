@@ -72,6 +72,7 @@ ast_t* parser_parse_statement(parser_t* parser, scope_t* scope) {
     switch (parser->current_token->type) {
         case TOKEN_IDENTIFIER: return parser_parse_identifier(parser, scope);
         case TOKEN_IF: return parser_parse_if_statement(parser,scope);
+        case TOKEN_WHILE: return parser_parse_while_statement(parser,scope);
         default: {
             char error_message[100];
             snprintf(error_message, sizeof(error_message),
@@ -199,9 +200,12 @@ ast_t* parser_parse_variable(parser_t* parser, scope_t* scope) {
         
         ast_t* var_def = init_ast(ast_variable_assign);
         var_def->variable_def_name = token_value;
-        var_def->variable_def_var_value =parser_parse_exp(parser,scope);
+        
+        var_def->variable_def_var_value = parser_parse_expression(parser,scope);
         var_def->scope = scope;
         return var_def;
+        
+        
     } else if (parser->current_token->type == TOKEN_LPAREN) {
         return parser_parse_func_call(parser, scope);
     }else{
@@ -280,6 +284,8 @@ ast_t* parser_parse_identifier(parser_t* parser, scope_t* scope) {
         return parser_parse_func_definition(parser, scope);
     }else if(strcmp(parser->current_token->value, "if") == 0) {
         return parser_parse_if_statement(parser,scope);
+    }else if(strcmp(parser->current_token->value, "while") == 0){
+        return parser_parse_while_statement(parser,scope);
     }else {
         return parser_parse_variable(parser, scope);
     }
@@ -327,7 +333,6 @@ ast_t* parser_parse_term(parser_t* parser, scope_t* scope) {
 ast_t* parser_parse_expression(parser_t* parser, scope_t* scope) {
     
     ast_t* left = parser_parse_term(parser, scope);
-    
     while (parser->current_token->type == TOKEN_PLUS
         || parser->current_token->type == TOKEN_MINUS 
         || parser->current_token->type == TOKEN_EQ
@@ -351,10 +356,6 @@ ast_t* parser_parse_expression(parser_t* parser, scope_t* scope) {
     }
 
     return left;
-}
-
-ast_t* parser_parse_condition(parser_t* parser , scope_t* scope){
-     
 }
 
 ast_t* parser_parse_if_statement(parser_t* parser, scope_t* scope) {
@@ -387,7 +388,7 @@ ast_t* parser_parse_if_statement(parser_t* parser, scope_t* scope) {
 
         // Check if we need to resize the arrays
         if (if_ast->elsif_count >= elsif_capacity) {
-            elsif_capacity *= 2;
+            elsif_capacity += 1;//increasing the size as long as we have more elisfs
             if_ast->elsif_conditions = realloc(if_ast->elsif_conditions, elsif_capacity * sizeof(ast_t*));
             if_ast->elsif_bodies = realloc(if_ast->elsif_bodies, elsif_capacity * sizeof(ast_t*));
         }
@@ -410,4 +411,28 @@ ast_t* parser_parse_if_statement(parser_t* parser, scope_t* scope) {
     return if_ast;
 }
 
+ast_t* parser_parse_while_statement(parser_t* parser, scope_t* scope) {
+    // Consume the 'while' keyword
+    parser_consume(parser, TOKEN_WHILE);
+    parser_consume(parser, TOKEN_LPAREN);
 
+    // Parse the while condition
+    ast_t* while_condition = parser_parse_expression(parser, scope);
+
+    parser_consume(parser, TOKEN_RPAREN);
+    parser_consume(parser, TOKEN_LBRACE);
+
+    // Parse the while body
+    ast_t* while_body = parser_parse_statements(parser, scope);
+
+    parser_consume(parser, TOKEN_RBRACE);
+
+    // Initialize the AST node with the type 'ast_while_statement'
+    ast_t* while_ast = init_ast(ast_while);
+
+    // Assign the parsed condition and body to the AST node
+    while_ast->while_condition = while_condition;
+    while_ast->while_body = while_body;
+
+    return while_ast;
+}

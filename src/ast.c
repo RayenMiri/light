@@ -49,6 +49,8 @@ ast_t* init_ast(int type) {
     ast->elsif_bodies = NULL ;  // Array of `elsif` bodies
     ast-> elsif_count = 0;           // Number of `elsif` branches
     ast-> else_branch_body = NULL; // `else` body
+
+    
     ast->while_condition = NULL;
     ast->while_body = NULL;
     

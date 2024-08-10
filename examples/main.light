@@ -1,19 +1,7 @@
-var score = 59;
+var i = 8;
 
-function myScore(x){
-    var y = 0
-    if (x >= 90) {
-        print("Grade: A");
-    } elsif (x >= 80) {
-        print("Grade: B");
-    } elsif (x >= 70) {
-        print("Grade: C");
-        y = 10
-    } elsif (x >= 60) {
-        print("Grade: D");
-    } else {
-        print("Grade: F");
-    }   
+
+while(i>0){
+    print(i)
+    i = i - 1 ;
 }
-
-myScore(score)

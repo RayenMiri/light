@@ -35,6 +35,7 @@ typedef struct ast {
         ast_func_arg, 
         ast_binary_op,
         ast_if,
+        ast_while,
         ast_noop,
     } type;
     struct scope* scope;

@@ -63,6 +63,8 @@ ast_t* visitor_visit(visitor_t* visitor, ast_t* node) {
             return visitor_visit_ast_binary_op(visitor,node);
         case ast_if:
             return visitor_visit_if_statement(visitor, node);
+        case ast_while : 
+            return visitor_visit_while_statement(visitor,node);
         case ast_string:
             return visitor_visit_ast_string(visitor, node);
         case ast_number:
@@ -75,7 +77,6 @@ ast_t* visitor_visit(visitor_t* visitor, ast_t* node) {
             return visitor_visit_ast_func_call(visitor, node);
         case ast_func_def:
             return visitor_visit_ast_func_def(visitor, node);
-        
         default:
             printf("Uncaught statement of type %d\n", node->type);
             exit(1);
@@ -87,10 +88,15 @@ ast_t* visitor_visit_ast_variable_def(visitor_t* visitor, ast_t* node) {
     ast_t* existing_var_def = scope_get_variable_definition(visitor->current_scope, node->variable_def_name);
 
     if (existing_var_def != NULL) {
-        // Variable exists, so update its value
-        existing_var_def->variable_def_var_value = node->variable_def_var_value;
+        // Evaluate the new value before updating the variable definition
+        ast_t* new_value = visitor_visit(visitor, node->variable_def_var_value);
+
+        // Update its value in the existing variable definition
+        existing_var_def->variable_def_var_value = new_value;
     } else {
-        // Variable does not exist, so add a new definition
+        // Variable does not exist, so add a new definition with the evaluated value
+        ast_t* new_value = visitor_visit(visitor, node->variable_def_var_value);
+        node->variable_def_var_value = new_value;
         scope_set_variable_definition(visitor->current_scope, node);
     }
 
@@ -98,24 +104,35 @@ ast_t* visitor_visit_ast_variable_def(visitor_t* visitor, ast_t* node) {
 }
 
 
+
 ast_t* visitor_visit_ast_variable(visitor_t* visitor, ast_t* node) {
-    // Handle variable
-    
-    ast_t* v_def = scope_get_variable_definition(visitor->current_scope,node->variable_name);
-    if(v_def != NULL){
-        return visitor_visit(visitor,v_def->variable_def_var_value);
+
+    ast_t* v_def = scope_get_variable_definition(visitor->current_scope, node->variable_name);
+    if (v_def != NULL) {
+        // Check if the variable's value is not the variable itself or causing recursion
+        if (v_def->variable_def_var_value->type == ast_variable && 
+            strcmp(v_def->variable_def_var_value->variable_name, node->variable_name) == 0) {
+            printf("Error: Infinite recursion detected in variable %s\n", node->variable_name);
+            exit(1);
+        }
+
+        // Evaluate the variable's value only if it's not a recursive call
+        return visitor_visit(visitor, v_def->variable_def_var_value);
     }
+
     printf("Undefined variable %s\n", node->variable_name);
     exit(1);
-    return node; // It's unreachable but I'll keep it
+
+    return node; // Unreachable but included
 }
+
 
 // Handle expression nodes
 ast_t* visitor_visit_ast_binary_op(visitor_t* visitor, ast_t* node) {
     // Visit left and right operands
     ast_t* left = visitor_visit(visitor, node->binary_op_left);
     ast_t* right = visitor_visit(visitor, node->binary_op_right);
-
+    
     // Determine the type of the operation
     binary_op_type_t op_type = node->binary_op_type;  
 
@@ -310,6 +327,26 @@ ast_t* visitor_visit_ast_func_def(visitor_t* visitor, ast_t* node) {
     // Handle function definition
     scope_set_function_definition(visitor->current_scope,node);
     return node;
+}
+
+ast_t* visitor_visit_while_statement(visitor_t* visitor, ast_t* node) {
+    while (1) {
+        ast_t* while_condition = visitor_visit(visitor, node->while_condition);
+
+        if (while_condition->type != ast_bool) {
+            printf("Error: while condition must evaluate to a boolean.\n");
+            exit(1);
+        }
+
+        if (!while_condition->bool_value) {
+            break; // Exit the loop when the condition is false
+        }
+
+        // Execute the loop body
+        visitor_visit(visitor, node->while_body);
+    }
+
+    return init_ast(ast_noop);
 }
 
 
