@@ -371,7 +371,7 @@ ast_t* parser_parse_if_statement(parser_t* parser, scope_t* scope) {
     if_ast->if_body = if_body;
 
     // Initialize the arrays for `elsif` conditions and bodies
-    size_t elsif_capacity = 10; // Initial capacity for the arrays
+    size_t elsif_capacity = 1; // Initial capacity for the arrays
     if_ast->elsif_conditions = malloc(elsif_capacity * sizeof(ast_t*));
     if_ast->elsif_bodies = malloc(elsif_capacity * sizeof(ast_t*));
     if_ast->elsif_count = 0;
@@ -406,9 +406,6 @@ ast_t* parser_parse_if_statement(parser_t* parser, scope_t* scope) {
         parser_consume(parser, TOKEN_RBRACE);
         if_ast->else_branch_body = else_body;
     }
-
-    // Debugging output to check number of `elsif` branches
-    printf("nbr of elsifs %zu\n", if_ast->elsif_count);
 
     return if_ast;
 }

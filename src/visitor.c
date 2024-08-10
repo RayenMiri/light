@@ -221,7 +221,7 @@ ast_t* visitor_visit_if_statement(visitor_t* visitor, ast_t* node) {
         }
     }
 
-    // Add handling for 'else' if you have implemented that
+    // Add handling for 'else' 
     if (node->else_branch_body) {
         return visitor_visit(visitor, node->else_branch_body);
     }
@@ -336,7 +336,7 @@ char* process_escaped_sequences(const char* str) {
                     result[j++] = '\t';
                     i++; // Skip the next character
                     break;
-                // Add more cases here for other escape sequences if needed
+                // for now i don't think it's necessary but i can add more cases here for other escape sequences if needed
                 default:
                     result[j++] = str[i]; // Copy the backslash as is
                     break;
