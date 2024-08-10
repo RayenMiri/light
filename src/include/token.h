@@ -23,6 +23,8 @@ typedef struct token {
         TOKEN_MUL,
         TOKEN_DIV,
         TOKEN_IF,
+        TOKEN_ELSIF,
+        TOKEN_ELSE,
         TOKEN_WHILE,
         TOKEN_RETURN,
         TOKEN_LT,   // <

@@ -1,18 +1,13 @@
-function gest (a){
-    print("gest func");
-    
+var score = 72;
+
+if (score >= 90) {
+ print("Grade: A");
+} elsif (score >= 80) {
+ print("Grade: B");
+} elsif (score >= 70) {
+ print("Grade: C");
+} elsif (score >= 60) {
+ print("Grade: D");
+} else {
+ print("Grade: F");
 }
-
-function test (a){
-    print(a);
-    if(a>0){
-        test(a-1);
-    }
-    
-}
-
-test(20);
-gest(17);
-
-
-

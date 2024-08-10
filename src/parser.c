@@ -358,39 +358,59 @@ ast_t* parser_parse_condition(parser_t* parser , scope_t* scope){
 }
 
 ast_t* parser_parse_if_statement(parser_t* parser, scope_t* scope) {
+    parser_consume(parser, TOKEN_IF);
+    parser_consume(parser, TOKEN_LPAREN);
+    ast_t* condition = parser_parse_expression(parser, scope);
+    parser_consume(parser, TOKEN_RPAREN);
+    parser_consume(parser, TOKEN_LBRACE);
+    ast_t* if_body = parser_parse_statements(parser, scope);
+    parser_consume(parser, TOKEN_RBRACE);
 
-    parser_consume(parser, TOKEN_IF);          // Consume "if"
-    parser_consume(parser, TOKEN_LPAREN);      // Consume "("
-    ast_t* condition = parser_parse_expression(parser, scope); // Parse the condition expression
-    parser_consume(parser, TOKEN_RPAREN);      // Consume ")"
-    // Expect a block or single statement here
-    parser_consume(parser, TOKEN_LBRACE);      // Consume "{"
-    ast_t* if_body = parser_parse_statements(parser, scope); // Parse the body of the if statement
-    parser_consume(parser, TOKEN_RBRACE);      // Consume "}"
-
-    ast_t* if_ast = init_ast(ast_if);          // Initialize the AST node for an "if" statement
+    ast_t* if_ast = init_ast(ast_if);
     if_ast->if_condition = condition;
     if_ast->if_body = if_body;
-    if_ast->scope = scope;
 
-    /*Handle optional "else" part
+    // Initialize the arrays for `elsif` conditions and bodies
+    size_t elsif_capacity = 10; // Initial capacity for the arrays
+    if_ast->elsif_conditions = malloc(elsif_capacity * sizeof(ast_t*));
+    if_ast->elsif_bodies = malloc(elsif_capacity * sizeof(ast_t*));
+    if_ast->elsif_count = 0;
+
+    while (parser->current_token->type == TOKEN_ELSIF) {
+        parser_consume(parser, TOKEN_ELSIF);
+        parser_consume(parser, TOKEN_LPAREN);
+        ast_t* elsif_condition = parser_parse_expression(parser, scope);
+        parser_consume(parser, TOKEN_RPAREN);
+        parser_consume(parser, TOKEN_LBRACE);
+        ast_t* elsif_body = parser_parse_statements(parser, scope);
+        parser_consume(parser, TOKEN_RBRACE);
+
+        // Check if we need to resize the arrays
+        if (if_ast->elsif_count >= elsif_capacity) {
+            elsif_capacity *= 2;
+            if_ast->elsif_conditions = realloc(if_ast->elsif_conditions, elsif_capacity * sizeof(ast_t*));
+            if_ast->elsif_bodies = realloc(if_ast->elsif_bodies, elsif_capacity * sizeof(ast_t*));
+        }
+
+        // Store the `elsif` condition and body in the arrays
+        if_ast->elsif_conditions[if_ast->elsif_count] = elsif_condition;
+        if_ast->elsif_bodies[if_ast->elsif_count] = elsif_body;
+        if_ast->elsif_count++;
+
+    }
+
     if (parser->current_token->type == TOKEN_ELSE) {
         parser_consume(parser, TOKEN_ELSE);
-        if (parser->current_token->type == TOKEN_LBRACE) {
-            // If there is a block after "else"
-            parser_consume(parser, TOKEN_LBRACE);
-            ast_t* else_branch = parser_parse_statements(parser, scope);
-            parser_consume(parser, TOKEN_RBRACE);
-            if_ast->if_else_branch = else_branch;
-        } else {
-            // If it's a single statement after "else"
-            ast_t* else_branch = parser_parse_statement(parser, scope);
-            if_ast->if_else_branch = else_branch;
-        }
-    } else {
-        if_ast->if_else_branch = NULL;
+        parser_consume(parser, TOKEN_LBRACE);
+        ast_t* else_body = parser_parse_statements(parser, scope);
+        parser_consume(parser, TOKEN_RBRACE);
+        if_ast->else_branch_body = else_body;
     }
-    */
+
+    // Debugging output to check number of `elsif` branches
+    printf("nbr of elsifs %zu\n", if_ast->elsif_count);
+
     return if_ast;
 }
+
 

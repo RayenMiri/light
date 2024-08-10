@@ -5,17 +5,17 @@
 
 // Define token types for binary operations
 typedef enum {
-    OPERATOR_PLUS,
+    OPERATOR_PLUS = 15,
     OPERATOR_MINUS,
     OPERATOR_MULTIPLY,
     OPERATOR_DIVIDE,
     OPERATOR_MODULO,
-    OPERATOR_EQ,
-    OPERATOR_LT,   // <
-    OPERATOR_GT,   // >
-    OPERATOR_LE,   // <=
-    OPERATOR_GE,   // >=
-    OPERATOR_NE,   // !=
+    OPERATOR_LT = 24,
+    OPERATOR_GT, 
+    OPERATOR_EQ , 
+    OPERATOR_LE,   
+    OPERATOR_GE,  
+    OPERATOR_NE,   
     // Add other operators as needed
 } binary_op_type_t;
 
@@ -86,8 +86,10 @@ typedef struct ast {
     // ast_if
     struct ast* if_condition;
     struct ast* if_body;
-    struct ast* else_if_branch;
-    struct ast* else_branch;
+    struct ast** elsif_conditions; // Array of `elsif` conditions
+    struct ast** elsif_bodies;     // Array of `elsif` bodies
+    size_t elsif_count;           // Number of `elsif` branches
+    struct ast* else_branch_body; // `else` body
     
     //ast_while
     struct ast* while_condition;

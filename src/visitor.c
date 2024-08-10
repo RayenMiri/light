@@ -1,6 +1,7 @@
 #include "include/visitor.h"
 #include "include/scope.h"
 #include "include/token.h"
+//#include "include/parser.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -83,17 +84,14 @@ ast_t* visitor_visit(visitor_t* visitor, ast_t* node) {
 
 ast_t* visitor_visit_ast_variable_def(visitor_t* visitor, ast_t* node) {
     // Check if the variable already exists in the scope
-    printf("node var def name %s\n",node->variable_def_name);
     ast_t* existing_var_def = scope_get_variable_definition(visitor->current_scope, node->variable_def_name);
 
     if (existing_var_def != NULL) {
         // Variable exists, so update its value
         existing_var_def->variable_def_var_value = node->variable_def_var_value;
-        printf("Updated existing variable: %s\n", node->variable_def_name);
     } else {
         // Variable does not exist, so add a new definition
         scope_set_variable_definition(visitor->current_scope, node);
-        printf("Defined new variable: %s\n", node->variable_def_name);
     }
 
     return node;
@@ -115,38 +113,37 @@ ast_t* visitor_visit_ast_variable(visitor_t* visitor, ast_t* node) {
 // Handle expression nodes
 ast_t* visitor_visit_ast_binary_op(visitor_t* visitor, ast_t* node) {
     // Visit left and right operands
-    
     ast_t* left = visitor_visit(visitor, node->binary_op_left);
     ast_t* right = visitor_visit(visitor, node->binary_op_right);
 
     // Determine the type of the operation
-    int node_type = node->binary_op_type - ast_binary_op - 3;
+    binary_op_type_t op_type = node->binary_op_type;  
 
     // Handle equality and other comparison operations
-    if (node_type >= OPERATOR_EQ) {
+    if (op_type >= OPERATOR_LT) {
         bool condition_res = false;
-
-        switch (node_type) {
-            case 7:
+        
+        switch (op_type) {
+            case OPERATOR_LT:
                 condition_res = left->number_value < right->number_value;
                 break;
-            case 8:
+            case OPERATOR_GT:
                 condition_res = left->number_value > right->number_value;
                 break;
-            case 9:
+            case OPERATOR_EQ:
                 condition_res = left->number_value == right->number_value;
                 break;
-            case 10:
+            case OPERATOR_LE:
                 condition_res = left->number_value <= right->number_value;
                 break;
-            case 11:
+            case OPERATOR_GE:
                 condition_res = left->number_value >= right->number_value;
                 break;
-            case 12:
+            case OPERATOR_NE:
                 condition_res = left->number_value != right->number_value;
                 break;
             default:
-                printf("Unsupported comparison operator: %d\n", node->binary_op_type);
+                printf("Unsupported comparison operator: %d\n", op_type);
                 exit(1);
         }
 
@@ -158,7 +155,7 @@ ast_t* visitor_visit_ast_binary_op(visitor_t* visitor, ast_t* node) {
     // Handle arithmetic operations
     double result = 0.0;
 
-    switch (node_type) {
+    switch (op_type) {
         case OPERATOR_PLUS:
             result = left->number_value + right->number_value;
             break;
@@ -183,7 +180,7 @@ ast_t* visitor_visit_ast_binary_op(visitor_t* visitor, ast_t* node) {
             result = fmod(left->number_value, right->number_value);
             break;
         default:
-            printf("Unsupported arithmetic operator: %d\n", node->binary_op_type);
+            printf("Unsupported arithmetic operator: %d\n", op_type);
             exit(1);
     }
 
@@ -193,9 +190,9 @@ ast_t* visitor_visit_ast_binary_op(visitor_t* visitor, ast_t* node) {
 }
 
 
-ast_t* visitor_visit_if_statement(visitor_t* visitor, ast_t* node) {
 
-    // Evaluate the condition
+ast_t* visitor_visit_if_statement(visitor_t* visitor, ast_t* node) {
+    // Evaluate the 'if' condition
     ast_t* condition = visitor_visit(visitor, node->if_condition);
 
     if (condition->type != ast_bool) {
@@ -203,18 +200,38 @@ ast_t* visitor_visit_if_statement(visitor_t* visitor, ast_t* node) {
         exit(1);
     }
 
-    // Check the condition result
+    // Check the 'if' condition result
     if (condition->bool_value) {
-        // Execute the 'then' branch
         return visitor_visit(visitor, node->if_body);
-    } /*else if (node->else_body) {
-        // Execute the 'else' branch (if it exists)
-        return visitor_visit(visitor, node->else_body);
-    }*/
+    }
 
-    // If there's no else branch and the condition is false, return a null node or empty result
+    // Check each 'elsif' condition only if previous conditions were false
+    for (size_t i = 0; i < node->elsif_count; i++) {
+        // Evaluate the 'elsif' condition
+        ast_t* elsif_condition = visitor_visit(visitor, node->elsif_conditions[i]);
+
+        if (elsif_condition->type != ast_bool) {
+            printf("Error: Elsif condition must evaluate to a boolean.\n");
+            exit(1);
+        }
+
+        // If the current 'elsif' condition is true, execute its body and exit
+        if (elsif_condition->bool_value) {
+            return visitor_visit(visitor, node->elsif_bodies[i]);
+        }
+    }
+
+    // Add handling for 'else' if you have implemented that
+    if (node->else_branch_body) {
+        return visitor_visit(visitor, node->else_branch_body);
+    }
+
+    // If neither 'if', 'elsif', nor 'else' was executed, return a 'noop'
     return init_ast(ast_noop);
 }
+
+
+
 
 
 

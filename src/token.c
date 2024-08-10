@@ -32,6 +32,8 @@ const char* token_type_to_string(int type) {
         case TOKEN_MUL: return "MULTIPLY";
         case TOKEN_DIV: return "DIVIDE";
         case TOKEN_IF: return "IF";
+        case TOKEN_ELSIF: return "ELSIF";
+        case TOKEN_ELSE: return "ELSE";
         case TOKEN_WHILE: return "WHILE";
         case TOKEN_RETURN: return "RETURN";
         default: return "UNKNOWN";

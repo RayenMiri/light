@@ -42,11 +42,13 @@ ast_t* init_ast(int type) {
     ast->binary_op_right = NULL;
     ast->binary_op_type = 0;
 
-    ast->if_condition = NULL;
-    ast->if_body= NULL;
-    ast->else_if_branch = NULL;
-    ast->else_branch = NULL;
-
+  
+    ast-> if_condition = NULL;
+    ast-> if_body = NULL;
+    ast-> elsif_conditions = NULL; // Array of `elsif` conditions
+    ast->elsif_bodies = NULL ;  // Array of `elsif` bodies
+    ast-> elsif_count = 0;           // Number of `elsif` branches
+    ast-> else_branch_body = NULL; // `else` body
     ast->while_condition = NULL;
     ast->while_body = NULL;
     

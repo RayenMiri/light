@@ -167,6 +167,8 @@ token_t* lexer_collect_id(lexer_t* lexer) {
         lexer_advance(lexer);
     }
     if (strcmp(value, "if") == 0) return init_token(TOKEN_IF, value, lexer->line, lexer->pos);
+    if (strcmp(value, "elsif") == 0) return init_token(TOKEN_ELSIF, value, lexer->line, lexer->pos);
+    if (strcmp(value, "else") == 0) return init_token(TOKEN_ELSE, value, lexer->line, lexer->pos);
     if (strcmp(value, "while") == 0) return init_token(TOKEN_WHILE, value, lexer->line, lexer->pos);
     if (strcmp(value, "return") == 0) return init_token(TOKEN_RETURN, value, lexer->line, lexer->pos);
     if (strcmp(value, "true") == 0) return init_token(TOKEN_BOOL, value, lexer->line, lexer->pos);

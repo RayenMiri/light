@@ -121,12 +121,18 @@ if (condition) {
 ### Example of If Statement
 
 ```light
-var age = 18;
+var score = 72;
 
-if (age >= 18) {
-    print("You are an adult.");
+if (score >= 90) {
+ print("Grade: A");
+} elsif (score >= 80) {
+ print("Grade: B");
+} elsif (score >= 70) {
+ print("Grade: C");
+} elsif (score >= 60) {
+ print("Grade: D");
 } else {
-    print("You are not an adult.");
+ print("Grade: F");
 }
 ```
 
