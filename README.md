@@ -244,7 +244,7 @@ print(str); // Output: Hello World
 
 ```light
 function greet(name) {
-    print("Hello, " + name);
+    print("Hello, " , name);
 }
 
 greet("Alice"); // Output: Hello, Alice
@@ -285,7 +285,7 @@ print(globalVar); // Output: 10.000000
 var i = 1;
 
 while (i <= 3) {
-    print("Loop iteration: " + i);
+    print("Loop iteration: " , i);
     i = i + 1;
 }
 ```
