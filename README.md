@@ -1,4 +1,4 @@
-Certainly! To distinguish between local and global variables in Light, we need to elaborate on how each type of variable is used and scoped within the program. Here’s the updated documentation with a section explaining the distinction between local and global variables:
+Certainly! Let's add a section on `while` loops to the documentation:
 
 ---
 
@@ -142,6 +142,50 @@ if (score >= 90) {
 - If the condition evaluates to `true`, the code inside the `{}` block following the `if` is executed.
 - If there is an `else` block, it will execute if the condition evaluates to `false`.
 
+## Loops
+
+Loops are used to repeatedly execute a block of code as long as a specified condition is true. Light supports `while` loops.
+
+### While Loop
+
+The `while` loop repeatedly executes a block of code as long as the condition specified in the `while` statement is `true`.
+
+### Syntax
+
+```light
+while (condition) {
+    // code to be executed repeatedly
+}
+```
+
+### Example of While Loop
+
+```light
+var count = 0;
+
+while (count < 5) {
+    print(count);
+    count = count + 1;
+}
+```
+
+### Explanation:
+
+- The loop starts by checking the condition `(count < 5)`.
+- If the condition is `true`, the code inside the `{}` block is executed.
+- After each iteration, the condition is checked again.
+- The loop continues until the condition becomes `false`.
+
+### Output:
+
+```
+0.000000
+1.000000
+2.000000
+3.000000
+4.000000
+```
+
 ## Functions
 
 Functions are blocks of code that perform specific tasks. They are defined using the following syntax:
@@ -233,6 +277,30 @@ testScope();
 
 print(globalVar); // Output: 10.000000
 // print(localVar); // Error: Undefined variable 'localVar'
+```
+
+### Example 5: While Loop
+
+```light
+var i = 1;
+
+while (i <= 3) {
+    print("Loop iteration: " + i);
+    i = i + 1;
+}
+```
+
+### Explanation:
+
+- The loop will run as long as `i <= 3` is `true`.
+- The value of `i` is incremented by 1 in each iteration, and the loop will stop when `i` becomes greater than 3.
+
+### Output:
+
+```
+Loop iteration: 1.000000
+Loop iteration: 2.000000
+Loop iteration: 3.000000
 ```
 
 This documentation provides a comprehensive overview of Light, covering its syntax, features, and usage. For more detailed information, send me an email at rayenmiri000@gmail.com.
