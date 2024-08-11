@@ -54,6 +54,11 @@ ast_t* init_ast(int type) {
     ast->while_condition = NULL;
     ast->while_body = NULL;
     
+
+    ast-> for_condition;
+    ast-> for_index;
+    ast-> for_step;
+    ast-> for_body;
     return ast;
 
 }

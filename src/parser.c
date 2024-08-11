@@ -73,6 +73,7 @@ ast_t* parser_parse_statement(parser_t* parser, scope_t* scope) {
         case TOKEN_IDENTIFIER: return parser_parse_identifier(parser, scope);
         case TOKEN_IF: return parser_parse_if_statement(parser,scope);
         case TOKEN_WHILE: return parser_parse_while_statement(parser,scope);
+        case TOKEN_FOR: return parser_parse_for_statement(parser,scope);
         default: {
             
             char error_message[100];
@@ -453,4 +454,37 @@ ast_t* parser_parse_while_statement(parser_t* parser, scope_t* scope) {
     while_ast->while_body = while_body;
 
     return while_ast;
+}
+
+
+ast_t* parser_parse_for_statement(parser_t* parser, scope_t* scope){
+    parser_consume(parser,TOKEN_FOR);
+    parser_consume(parser,TOKEN_LPAREN);
+
+    //parse the index declaration
+    ast_t* for_index = parser_parse_variable_definition(parser,scope);
+    parser_consume(parser,TOKEN_SEMI);
+
+    //parse the condition
+    ast_t* for_condition = parser_parse_expression(parser,scope);
+    parser_consume(parser,TOKEN_SEMI);
+
+    //parse the step
+    ast_t* for_step = parser_parse_expression(parser,scope);
+
+    parser_consume(parser,TOKEN_RPAREN);
+    parser_consume(parser,TOKEN_LBRACE);
+
+    //parse the body
+    ast_t* for_body = parser_parse_statements(parser,scope);
+
+    // Initialize the for loop AST node
+    ast_t* for_ast = init_ast(ast_for);
+
+    for_ast->for_index = for_index;
+    for_ast->for_condition = for_condition;
+    for_ast->for_step = for_step;
+    for_ast->for_body = for_body;
+
+    return for_ast;
 }

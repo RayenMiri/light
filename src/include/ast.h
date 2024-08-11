@@ -36,6 +36,7 @@ typedef struct ast {
         ast_binary_op,
         ast_if,
         ast_while,
+        ast_for,
         ast_noop,
     } type;
     struct scope* scope;
@@ -95,6 +96,12 @@ typedef struct ast {
     //ast_while
     struct ast* while_condition;
     struct ast* while_body;
+
+    //ast_for
+    struct ast* for_condition;
+    size_t for_index;
+    size_t for_step;
+    struct ast* for_body;
 
 } ast_t;
 

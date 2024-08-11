@@ -5,8 +5,6 @@
 #include "include/visitor.h"
 #include "include/io.h"
 
-#define MAX_LIMIt 20
-
 
 int main(int argc, char* argv[])
 {

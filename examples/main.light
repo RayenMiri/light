@@ -1,7 +1,4 @@
-var ok = true;
-
-if (ok){
-    print(true);
-}else{
-    print(false)
+for(var i = 0 ; i<=4 ; i=i+1){
+    print(i);
 }
+

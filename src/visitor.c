@@ -65,6 +65,8 @@ ast_t* visitor_visit(visitor_t* visitor, ast_t* node) {
             return visitor_visit_if_statement(visitor, node);
         case ast_while : 
             return visitor_visit_while_statement(visitor,node);
+        case ast_for : 
+            return visitor_visit_for_statement(visitor,node);
         case ast_string:
             return visitor_visit_ast_string(visitor, node);
         case ast_number:
@@ -395,6 +397,31 @@ ast_t* visitor_visit_while_statement(visitor_t* visitor, ast_t* node) {
 
         // Execute the loop body
         visitor_visit(visitor, node->while_body);
+    }
+
+    return init_ast(ast_noop);
+}
+
+ast_t* visitor_visit_for_statement(visitor_t* visitor, ast_t* node){
+    // Visit the index initialization (e.g., int i = 0)
+    visitor_visit(visitor,node->for_index);
+    while(1){
+        //Evaluate the for condition
+        ast_t* for_condition = visitor_visit(visitor,node->for_condition);
+
+        if (for_condition->type != ast_bool) {
+            printf("Error: while condition must evaluate to a boolean.\n");
+            exit(1);
+        }
+
+        if(!for_condition->bool_value){
+            break;
+        }
+        //Visit the body
+        visitor_visit(visitor,node->for_body);
+        
+        //Revisit the step (++ or --)
+        visitor_visit(visitor, node->for_step);
     }
 
     return init_ast(ast_noop);
