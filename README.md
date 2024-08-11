@@ -244,7 +244,7 @@ print(str); // Output: Hello World
 
 ```light
 function greet(name) {
-    print("Hello, " + name);
+    print("Hello, " , name);
 }
 
 greet("Alice"); // Output: Hello, Alice
