@@ -72,7 +72,7 @@ typedef struct ast {
     // ast_number
     double number_value; 
     
-    // ast_book
+    // ast_bool
     bool bool_value; 
 
     // ast_compound

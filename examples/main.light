@@ -1,6 +1,7 @@
-var count = 0;
+var ok = true;
 
-while (count < 5) {
-    print(count);
-    count = count + 1;
+if (ok){
+    print(true);
+}else{
+    print(false)
 }

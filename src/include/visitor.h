@@ -24,6 +24,8 @@ ast_t* visitor_visit_ast_string(visitor_t* visitor, ast_t* node);
 
 ast_t* visitor_visit_ast_number(visitor_t* visitor, ast_t* node);
 
+ast_t* visitor_visit_ast_bool(visitor_t* visitor, ast_t* node);
+
 ast_t* visitor_visit_ast_compound(visitor_t* visitor, ast_t* node);
 
 ast_t* visitor_visit_ast_statement(visitor_t* visitor, ast_t* node);

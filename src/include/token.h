@@ -34,6 +34,7 @@ typedef struct token {
         TOKEN_GE,   // >=
         TOKEN_NE,   // !=
         TOKEN_NOT,
+        TOKEN_FOR,
         TOKEN_UNKNOWN,
     } type;
     char* value;

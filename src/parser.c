@@ -74,6 +74,7 @@ ast_t* parser_parse_statement(parser_t* parser, scope_t* scope) {
         case TOKEN_IF: return parser_parse_if_statement(parser,scope);
         case TOKEN_WHILE: return parser_parse_while_statement(parser,scope);
         default: {
+            
             char error_message[100];
             snprintf(error_message, sizeof(error_message),
                      "Unexpected token '%s' of type %d (%s) in statement",
@@ -86,11 +87,14 @@ ast_t* parser_parse_statement(parser_t* parser, scope_t* scope) {
 }
 
 ast_t* parser_parse_exp(parser_t* parser, scope_t* scope) {
+    printf("parser current token type in exp %d\n",parser->current_token->type);
     switch (parser->current_token->type) {
         case TOKEN_STRING: return parser_parse_string(parser, scope);
         case TOKEN_NUMBER : return parser_parse_number(parser,scope);
         case TOKEN_IDENTIFIER: return parser_parse_identifier(parser, scope);
+        case TOKEN_BOOL : return parser_parse_bool(parser,scope);
         default: {
+            printf("whyyyy is it here \n");
             char error_message[100];
             snprintf(error_message, sizeof(error_message),
                      "Unexpected token '%s' of type %d (%s) in expression",
@@ -233,7 +237,9 @@ ast_t* parser_parse_variable_definition(parser_t* parser, scope_t* scope) {
         // Mathematical expression or complex expression
         var_value = parser_parse_expression(parser, scope);
        
-    } else if (parser->current_token->type == TOKEN_STRING) {
+    } else if (parser->current_token->type == TOKEN_STRING
+            || parser->current_token->type == TOKEN_BOOL    
+            ) {
         var_value = parser_parse_exp(parser, scope);
     } else {
         // Handle unexpected tokens
@@ -276,6 +282,16 @@ ast_t* parser_parse_number(parser_t* parser, scope_t* scope) {
     return number_node;
 }
 
+ast_t* parser_parse_bool(parser_t* parser,scope_t* scope){
+    ast_t* bool_node = init_ast(ast_bool);
+    
+    bool_node->bool_value = strcmp(parser->current_token->value,"true")==0 ? 1:0;
+    parser_consume(parser,TOKEN_BOOL);
+    bool_node->scope = scope;
+    
+    return bool_node;
+}
+
 
 ast_t* parser_parse_identifier(parser_t* parser, scope_t* scope) {
     if (strcmp(parser->current_token->value, "var") == 0) {
@@ -299,6 +315,8 @@ ast_t* parser_parse_factor(parser_t* parser, scope_t* scope) {
             return parser_parse_number(parser, scope);
         case TOKEN_IDENTIFIER:
             return parser_parse_identifier(parser, scope);
+        case TOKEN_BOOL:
+            return parser_parse_bool(parser,scope);
         case TOKEN_LPAREN:
             parser_consume(parser, TOKEN_LPAREN);
             ast_t* expr = parser_parse_expression(parser, scope);

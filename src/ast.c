@@ -33,7 +33,7 @@ ast_t* init_ast(int type) {
     
     ast->number_value = 0;
 
-    ast->bool_value = true;
+    ast->bool_value = NULL;
 
     ast->compound_value = NULL;
     ast->compound_size = 0;

@@ -173,6 +173,7 @@ token_t* lexer_collect_id(lexer_t* lexer) {
     if (strcmp(value, "return") == 0) return init_token(TOKEN_RETURN, value, lexer->line, lexer->pos);
     if (strcmp(value, "true") == 0) return init_token(TOKEN_BOOL, value, lexer->line, lexer->pos);
     if (strcmp(value, "false") == 0) return init_token(TOKEN_BOOL, value, lexer->line, lexer->pos);
+    if (strcmp(value, "for") == 0) return init_token(TOKEN_FOR, value, lexer->line, lexer->pos);
 
     // Additional checks can be added here if needed
 

@@ -69,6 +69,8 @@ ast_t* visitor_visit(visitor_t* visitor, ast_t* node) {
             return visitor_visit_ast_string(visitor, node);
         case ast_number:
             return visitor_visit_ast_number(visitor, node);
+        case ast_bool:
+            return visitor_visit_ast_bool(visitor, node);
         case ast_compound:
             return visitor_visit_ast_compound(visitor, node);
         case ast_statement:
@@ -139,28 +141,71 @@ ast_t* visitor_visit_ast_binary_op(visitor_t* visitor, ast_t* node) {
     // Handle equality and other comparison operations
     if (op_type >= OPERATOR_LT) {
         bool condition_res = false;
-        
-        switch (op_type) {
-            case OPERATOR_LT:
-                condition_res = left->number_value < right->number_value;
+
+        // Determine if the operands are of the same type
+        if (left->type != right->type) {
+            printf("Error: Cannot compare operands of different types.\n");
+            exit(1);
+        }
+
+        // Perform the comparison based on the type of the operands
+        switch (left->type) {
+            case ast_number:
+                switch (op_type) {
+                    case OPERATOR_LT:
+                        condition_res = left->number_value < right->number_value;
+                        break;
+                    case OPERATOR_GT:
+                        condition_res = left->number_value > right->number_value;
+                        break;
+                    case OPERATOR_EQ:
+                        condition_res = left->number_value == right->number_value;
+                        break;
+                    case OPERATOR_LE:
+                        condition_res = left->number_value <= right->number_value;
+                        break;
+                    case OPERATOR_GE:
+                        condition_res = left->number_value >= right->number_value;
+                        break;
+                    case OPERATOR_NE:
+                        condition_res = left->number_value != right->number_value;
+                        break;
+                    default:
+                        printf("Unsupported comparison operator for numbers: %d\n", op_type);
+                        exit(1);
+                }
                 break;
-            case OPERATOR_GT:
-                condition_res = left->number_value > right->number_value;
+
+            case ast_string:
+                switch (op_type) {
+                    case OPERATOR_EQ:
+                        condition_res = strcmp(left->string_value, right->string_value) == 0;
+                        break;
+                    case OPERATOR_NE:
+                        condition_res = strcmp(left->string_value, right->string_value) != 0;
+                        break;
+                    default:
+                        printf("Unsupported comparison operator for strings: %d\n", op_type);
+                        exit(1);
+                }
                 break;
-            case OPERATOR_EQ:
-                condition_res = left->number_value == right->number_value;
+
+            case ast_bool:
+                switch (op_type) {
+                    case OPERATOR_EQ:
+                        condition_res = left->bool_value == right->bool_value;
+                        break;
+                    case OPERATOR_NE:
+                        condition_res = left->bool_value != right->bool_value;
+                        break;
+                    default:
+                        printf("Unsupported comparison operator for booleans: %d\n", op_type);
+                        exit(1);
+                }
                 break;
-            case OPERATOR_LE:
-                condition_res = left->number_value <= right->number_value;
-                break;
-            case OPERATOR_GE:
-                condition_res = left->number_value >= right->number_value;
-                break;
-            case OPERATOR_NE:
-                condition_res = left->number_value != right->number_value;
-                break;
+
             default:
-                printf("Unsupported comparison operator: %d\n", op_type);
+                printf("Unsupported operand type for comparison: %d\n", left->type);
                 exit(1);
         }
 
@@ -205,6 +250,7 @@ ast_t* visitor_visit_ast_binary_op(visitor_t* visitor, ast_t* node) {
     result_node->number_value = result;
     return result_node;
 }
+
 
 
 
@@ -258,6 +304,11 @@ ast_t* visitor_visit_ast_string(visitor_t* visitor, ast_t* node) {
 
 ast_t* visitor_visit_ast_number(visitor_t* visitor, ast_t* node) {
 
+    return node;
+}
+
+ast_t* visitor_visit_ast_bool(visitor_t* visitor, ast_t* node) {
+   
     return node;
 }
 
