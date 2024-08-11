@@ -1,5 +1,3 @@
-Certainly! Let's add a section on `while` loops to the documentation:
-
 ---
 
 # Documentation for Light
