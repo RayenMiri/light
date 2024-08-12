@@ -75,6 +75,7 @@ ast_t* parser_parse_statement(parser_t* parser, scope_t* scope) {
         case TOKEN_WHILE: return parser_parse_while_statement(parser,scope);
         case TOKEN_FOR: return parser_parse_for_statement(parser,scope);
         default: {
+
             
             char error_message[100];
             snprintf(error_message, sizeof(error_message),
@@ -129,6 +130,8 @@ ast_t* parser_parse_func_call(parser_t* parser, scope_t* scope) {
             case TOKEN_IDENTIFIER:
             case TOKEN_NUMBER:
             case TOKEN_LPAREN:
+            case TOKEN_MINUS:
+            printf("hereeeee\n");
                 ast_exp = parser_parse_expression(parser, scope);
                 break;
             default:
@@ -234,7 +237,9 @@ ast_t* parser_parse_variable_definition(parser_t* parser, scope_t* scope) {
     // Determine if the value is a mathematical expression or a direct value
     if (parser->current_token->type == TOKEN_NUMBER 
     || parser->current_token->type == TOKEN_IDENTIFIER 
-    || parser->current_token->type == TOKEN_LPAREN) {
+    || parser->current_token->type == TOKEN_LPAREN
+    || parser->current_token->type == TOKEN_MINUS
+    ) {
         // Mathematical expression or complex expression
         var_value = parser_parse_expression(parser, scope);
        
@@ -273,7 +278,7 @@ ast_t* parser_parse_string(parser_t* parser, scope_t* scope) {
 ast_t* parser_parse_number(parser_t* parser, scope_t* scope) {
     
     ast_t* number_node = init_ast(ast_number);
-
+    
     // Convert the token value to a double
     number_node->number_value = atof(parser->current_token->value);
     parser_consume(parser, TOKEN_NUMBER);
@@ -309,20 +314,26 @@ ast_t* parser_parse_identifier(parser_t* parser, scope_t* scope) {
 }
 
 ast_t* parser_parse_factor(parser_t* parser, scope_t* scope) {
-    // Handle numbers, strings, identifiers, etc.
-    
+    printf("factor\n");
+    ast_t* result;
+
     switch (parser->current_token->type) {
+        case TOKEN_MINUS:
+            parser_consume(parser, TOKEN_MINUS);
+            result = parser_parse_factor(parser, scope);  // Parse the next factor after the minus
+            result->number_value = -result->number_value; // Negate the factor
+            return result;
         case TOKEN_NUMBER:
             return parser_parse_number(parser, scope);
         case TOKEN_IDENTIFIER:
             return parser_parse_identifier(parser, scope);
         case TOKEN_BOOL:
-            return parser_parse_bool(parser,scope);
+            return parser_parse_bool(parser, scope);
         case TOKEN_LPAREN:
             parser_consume(parser, TOKEN_LPAREN);
-            ast_t* expr = parser_parse_expression(parser, scope);
+            result = parser_parse_expression(parser, scope);
             parser_consume(parser, TOKEN_RPAREN);
-            return expr;
+            return result;
         default:
             syntax_error(parser, "Unexpected token in factor");
             return NULL;
@@ -330,7 +341,7 @@ ast_t* parser_parse_factor(parser_t* parser, scope_t* scope) {
 }
 
 ast_t* parser_parse_term(parser_t* parser, scope_t* scope) {
-    
+    printf("term\n");
     ast_t* left = parser_parse_factor(parser, scope);
 
     while (parser->current_token->type == TOKEN_MUL || parser->current_token->type == TOKEN_DIV) {

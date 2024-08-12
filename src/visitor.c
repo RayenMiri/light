@@ -61,6 +61,9 @@ ast_t* visitor_visit(visitor_t* visitor, ast_t* node) {
             return visitor_visit_ast_variable_def(visitor, node);
         case ast_binary_op:
             return visitor_visit_ast_binary_op(visitor,node);
+        /*case ast_unary_op:
+            return visitor_visit_ast_unary_op(visitor,node);
+        */
         case ast_if:
             return visitor_visit_if_statement(visitor, node);
         case ast_while : 
@@ -130,9 +133,24 @@ ast_t* visitor_visit_ast_variable(visitor_t* visitor, ast_t* node) {
     return node; // Unreachable but included
 }
 
+/*ast_t* visitor_visit_ast_unary_op(ast_t* node, visitor_t* visitor) {
+    printf("here");
+    ast_t* value = visitor_visit(visitor,node->unary_op_operand);
+
+    switch (node->unary_op_type) {
+        case OPERATOR_MINUS:
+            ast_t* result_node = init_ast(ast_number);
+            result_node->number_value = result;
+            return result_node;
+        default:
+            fprintf(stderr, "Unknown unary operator\n");
+            exit(1);
+    }
+}*/
 
 // Handle expression nodes
 ast_t* visitor_visit_ast_binary_op(visitor_t* visitor, ast_t* node) {
+    printf("visitor visit binary op\n");
     // Visit left and right operands
     ast_t* left = visitor_visit(visitor, node->binary_op_left);
     ast_t* right = visitor_visit(visitor, node->binary_op_right);

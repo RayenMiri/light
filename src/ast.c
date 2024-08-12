@@ -59,6 +59,11 @@ ast_t* init_ast(int type) {
     ast-> for_index;
     ast-> for_step;
     ast-> for_body;
+
+    ast->unary_op_type ;  
+    ast->unary_op_operand ;
+
     return ast;
+
 
 }

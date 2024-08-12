@@ -14,6 +14,9 @@
         "scope.h": "c",
         "lexer.h": "c",
         "token.h": "c",
-        "ctype.h": "c"
+        "ctype.h": "c",
+        "system_error": "c",
+        "tuple": "c",
+        "type_traits": "c"
     }
 }

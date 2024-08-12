@@ -27,6 +27,7 @@ typedef struct ast {
         ast_exp,
         ast_string,
         ast_number,
+        ast_unary_op,
         ast_bool,
         ast_compound,
         ast_statement,
@@ -102,6 +103,10 @@ typedef struct ast {
     size_t for_index;
     size_t for_step;
     struct ast* for_body;
+
+    //ast_unary_op
+    struct ast*  unary_op_operand ; 
+    binary_op_type_t  unary_op_type ;
 
 } ast_t;
 
