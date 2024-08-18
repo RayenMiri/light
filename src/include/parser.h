@@ -5,8 +5,6 @@
 #include "lexer.h"
 #include "scope.h"
 
-
-
 typedef struct parser
 {
     lexer_t* lexer;
@@ -58,6 +56,7 @@ ast_t* parser_parse_while_statement(parser_t* parser, scope_t* scope);
 
 ast_t* parser_parse_for_statement(parser_t* parser, scope_t* scope);
 
+ast_t* parser_parse_return(parser_t* parser, scope_t* scope);
 
 
 #endif

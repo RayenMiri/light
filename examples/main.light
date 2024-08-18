@@ -1,6 +1,11 @@
+function <int> add(a,b){
+    return a;
+}
 
-var a  =  -17+(15-2);
+function <string> test(a){
+    return a;
+}
+var b = add(19,1);
+var a = test(4)
+print(b,a)
 
-
-
-print(-17+(15-2));

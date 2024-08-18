@@ -37,6 +37,7 @@ const char* token_type_to_string(int type) {
         case TOKEN_WHILE: return "WHILE";
         case TOKEN_FOR: return "FOR";
         case TOKEN_RETURN: return "RETURN";
+        
         default: return "UNKNOWN";
     }
 }

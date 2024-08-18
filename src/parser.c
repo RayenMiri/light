@@ -74,6 +74,7 @@ ast_t* parser_parse_statement(parser_t* parser, scope_t* scope) {
         case TOKEN_IF: return parser_parse_if_statement(parser,scope);
         case TOKEN_WHILE: return parser_parse_while_statement(parser,scope);
         case TOKEN_FOR: return parser_parse_for_statement(parser,scope);
+        case TOKEN_RETURN: return parser_parse_return(parser, scope); 
         default: {
 
             
@@ -105,10 +106,12 @@ ast_t* parser_parse_exp(parser_t* parser, scope_t* scope) {
             syntax_error(parser, error_message);
         }
     }
+    printf("ahahahahaha \n");
     return init_ast(ast_noop);
 }
 
 ast_t* parser_parse_func_call(parser_t* parser, scope_t* scope) {
+    printf("test %s\n", parser->prev_token->value);
     ast_t* func_call = init_ast(ast_func_call);
     func_call->func_call_name = parser->prev_token->value;
     func_call->func_call_args = NULL;
@@ -131,7 +134,6 @@ ast_t* parser_parse_func_call(parser_t* parser, scope_t* scope) {
             case TOKEN_NUMBER:
             case TOKEN_LPAREN:
             case TOKEN_MINUS:
-            printf("hereeeee\n");
                 ast_exp = parser_parse_expression(parser, scope);
                 break;
             default:
@@ -157,6 +159,7 @@ ast_t* parser_parse_func_call(parser_t* parser, scope_t* scope) {
     parser_consume(parser, TOKEN_RPAREN);
     
     func_call->scope = scope;
+   
     return func_call;
 }
 
@@ -165,11 +168,19 @@ ast_t* parser_parse_func_definition(parser_t* parser, scope_t* scope) {
     ast_t* ast_function_def = init_ast(ast_func_def);
     parser_consume(parser, TOKEN_IDENTIFIER);  // "function"
 
+    // Parse the return type
+    parser_consume(parser, TOKEN_LT);  // "<"
+    ast_function_def->func_def_return_type = parser->current_token->value;
+    parser_consume(parser, TOKEN_IDENTIFIER);  // e.g., "int"
+    parser_consume(parser, TOKEN_GT);  // ">"
+    
+    // Parse the function name
     char* function_name = parser->current_token->value;
     ast_function_def->func_def_name = function_name;
     parser_consume(parser, TOKEN_IDENTIFIER);
+
+    // Parse function arguments
     parser_consume(parser, TOKEN_LPAREN);
-    
     if (parser->current_token->type != TOKEN_RPAREN) {
         ast_function_def->func_def_args = calloc(1, sizeof(struct ast*));
         ast_t* arg = parser_parse_variable(parser, scope);
@@ -187,17 +198,21 @@ ast_t* parser_parse_func_definition(parser_t* parser, scope_t* scope) {
             ast_function_def->func_def_args[ast_function_def->func_def_args_size - 1] = arg;
         }
     }
-    
     parser_consume(parser, TOKEN_RPAREN);
-    parser_consume(parser, TOKEN_LBRACE);
 
+    // Parse the function body
+    parser_consume(parser, TOKEN_LBRACE);
     ast_function_def->func_def_body = parser_parse_statements(parser, scope);
+
+    
+
     parser_consume(parser, TOKEN_RBRACE);
 
     // Store function definition in the scope
     ast_function_def->scope = scope;
     return ast_function_def;
 }
+
 
 ast_t* parser_parse_variable(parser_t* parser, scope_t* scope) {
     char* token_value = parser->current_token->value;
@@ -215,6 +230,7 @@ ast_t* parser_parse_variable(parser_t* parser, scope_t* scope) {
         
         
     } else if (parser->current_token->type == TOKEN_LPAREN) {
+        printf("we are here babyy\n");
         return parser_parse_func_call(parser, scope);
     }else{
         ast_t* ast_var = init_ast(ast_variable);
@@ -314,7 +330,6 @@ ast_t* parser_parse_identifier(parser_t* parser, scope_t* scope) {
 }
 
 ast_t* parser_parse_factor(parser_t* parser, scope_t* scope) {
-    printf("factor\n");
     ast_t* result;
 
     switch (parser->current_token->type) {
@@ -341,7 +356,6 @@ ast_t* parser_parse_factor(parser_t* parser, scope_t* scope) {
 }
 
 ast_t* parser_parse_term(parser_t* parser, scope_t* scope) {
-    printf("term\n");
     ast_t* left = parser_parse_factor(parser, scope);
 
     while (parser->current_token->type == TOKEN_MUL || parser->current_token->type == TOKEN_DIV) {
@@ -498,4 +512,24 @@ ast_t* parser_parse_for_statement(parser_t* parser, scope_t* scope){
     for_ast->for_body = for_body;
 
     return for_ast;
+}
+
+
+ast_t* parser_parse_return(parser_t* parser, scope_t* scope) {
+    parser_consume(parser, TOKEN_RETURN);  // Consume the 'return' token
+
+    ast_t* ast_return_node = init_ast(ast_return);
+
+    if (parser->current_token->type != TOKEN_SEMI) {  // Check if there's a return expression
+
+        ast_return_node->return_value = parser_parse_exp(parser, scope);
+        
+        
+    } else {
+       
+        ast_return_node->return_value = init_ast(ast_noop);  // No return value (return;)
+    }
+
+    ast_return_node->scope = scope;
+    return ast_return_node;
 }

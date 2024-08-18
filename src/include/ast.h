@@ -38,6 +38,7 @@ typedef struct ast {
         ast_if,
         ast_while,
         ast_for,
+        ast_return,
         ast_noop,
     } type;
     struct scope* scope;
@@ -63,6 +64,10 @@ typedef struct ast {
     char* func_def_name;
     struct ast** func_def_args;
     size_t func_def_args_size;
+    char* func_def_return_type;
+
+    //ast_return
+    struct ast* return_value;
 
     // ast_func_arg
     char* func_arg_name;   

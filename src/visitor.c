@@ -52,6 +52,8 @@ visitor_t* init_visitor() {
 
 
 ast_t* visitor_visit(visitor_t* visitor, ast_t* node) {
+            printf("node type %d\n",node->type);
+
     switch (node->type) {
         case ast_variable_def:
             return visitor_visit_ast_variable_def(visitor, node);
@@ -61,9 +63,6 @@ ast_t* visitor_visit(visitor_t* visitor, ast_t* node) {
             return visitor_visit_ast_variable_def(visitor, node);
         case ast_binary_op:
             return visitor_visit_ast_binary_op(visitor,node);
-        /*case ast_unary_op:
-            return visitor_visit_ast_unary_op(visitor,node);
-        */
         case ast_if:
             return visitor_visit_if_statement(visitor, node);
         case ast_while : 
@@ -84,6 +83,8 @@ ast_t* visitor_visit(visitor_t* visitor, ast_t* node) {
             return visitor_visit_ast_func_call(visitor, node);
         case ast_func_def:
             return visitor_visit_ast_func_def(visitor, node);
+        case ast_return:
+            return visitor_visit_ast_return(visitor,node);
         default:
             printf("Uncaught statement of type %d\n", node->type);
             exit(1);
@@ -91,20 +92,30 @@ ast_t* visitor_visit(visitor_t* visitor, ast_t* node) {
 }
 
 ast_t* visitor_visit_ast_variable_def(visitor_t* visitor, ast_t* node) {
+    
     // Check if the variable already exists in the scope
     ast_t* existing_var_def = scope_get_variable_definition(visitor->current_scope, node->variable_def_name);
-
+    
     if (existing_var_def != NULL) {
         // Evaluate the new value before updating the variable definition
+         
         ast_t* new_value = visitor_visit(visitor, node->variable_def_var_value);
-
+        
         // Update its value in the existing variable definition
         existing_var_def->variable_def_var_value = new_value;
     } else {
+        
         // Variable does not exist, so add a new definition with the evaluated value
+        printf("node type in var def vis %d\n",node->type);
+   
         ast_t* new_value = visitor_visit(visitor, node->variable_def_var_value);
-        node->variable_def_var_value = new_value;
-        scope_set_variable_definition(visitor->current_scope, node);
+        if(new_value->type == 18){
+            printf("here");
+            node->variable_def_var_value = visitor->return_value;
+            scope_set_variable_definition(visitor->current_scope,node );
+        }else{  
+            node->variable_def_var_value = new_value;
+            scope_set_variable_definition(visitor->current_scope, node);}
     }
 
     return node;
@@ -113,8 +124,9 @@ ast_t* visitor_visit_ast_variable_def(visitor_t* visitor, ast_t* node) {
 
 
 ast_t* visitor_visit_ast_variable(visitor_t* visitor, ast_t* node) {
-
+    
     ast_t* v_def = scope_get_variable_definition(visitor->current_scope, node->variable_name);
+    
     if (v_def != NULL) {
         // Check if the variable's value is not the variable itself or causing recursion
         if (v_def->variable_def_var_value->type == ast_variable && 
@@ -122,7 +134,7 @@ ast_t* visitor_visit_ast_variable(visitor_t* visitor, ast_t* node) {
             printf("Error: Infinite recursion detected in variable %s\n", node->variable_name);
             exit(1);
         }
-
+        printf("variable def  %d\n",v_def->variable_def_var_value->type);
         // Evaluate the variable's value only if it's not a recursive call
         return visitor_visit(visitor, v_def->variable_def_var_value);
     }
@@ -133,24 +145,8 @@ ast_t* visitor_visit_ast_variable(visitor_t* visitor, ast_t* node) {
     return node; // Unreachable but included
 }
 
-/*ast_t* visitor_visit_ast_unary_op(ast_t* node, visitor_t* visitor) {
-    printf("here");
-    ast_t* value = visitor_visit(visitor,node->unary_op_operand);
-
-    switch (node->unary_op_type) {
-        case OPERATOR_MINUS:
-            ast_t* result_node = init_ast(ast_number);
-            result_node->number_value = result;
-            return result_node;
-        default:
-            fprintf(stderr, "Unknown unary operator\n");
-            exit(1);
-    }
-}*/
-
 // Handle expression nodes
 ast_t* visitor_visit_ast_binary_op(visitor_t* visitor, ast_t* node) {
-    printf("visitor visit binary op\n");
     // Visit left and right operands
     ast_t* left = visitor_visit(visitor, node->binary_op_left);
     ast_t* right = visitor_visit(visitor, node->binary_op_right);
@@ -323,7 +319,7 @@ ast_t* visitor_visit_ast_string(visitor_t* visitor, ast_t* node) {
 }
 
 ast_t* visitor_visit_ast_number(visitor_t* visitor, ast_t* node) {
-
+    
     return node;
 }
 
@@ -381,17 +377,29 @@ ast_t* visitor_visit_ast_func_call(visitor_t* visitor, ast_t* node) {
         ast_t* ast_vardef = init_ast(ast_variable_def);
 
         ast_vardef->variable_def_name = (char*)calloc(strlen(ast_var->variable_name) + 1, sizeof(char));
-        ast_vardef->variable_def_var_value = evaluated_arg;
         strcpy(ast_vardef->variable_def_name, ast_var->variable_name);
         
-        // Associate the parameter name with its evaluated value
-         
-        scope_set_variable_definition(visitor->current_scope, ast_vardef);
+        ast_vardef->variable_def_var_value = evaluated_arg;
+
+        scope_set_variable_definition(function_scope, ast_vardef);
     }
-    visitor_visit(visitor, f_def->func_def_body);
-    visitor->current_scope = function_scope->parent_scope;
-    free(function_scope);
+
+    // Execute the function body
+    ast_t* f_body = visitor_visit(visitor, f_def->func_def_body);
+
+    // Reset the scope to the previous one
+    
+
+    printf("it has a return value ? %d\n",visitor->return_value->type);
+
+    ast_t*  returned_value = visitor_visit(visitor,visitor->return_value);
+   
+    printf("return value :%s\n",returned_value->string_value);
+
+    visitor->current_scope = visitor->current_scope->parent_scope;
+    return init_ast(ast_noop);
 }
+
 
 
 ast_t* visitor_visit_ast_func_def(visitor_t* visitor, ast_t* node) {
@@ -445,6 +453,21 @@ ast_t* visitor_visit_for_statement(visitor_t* visitor, ast_t* node){
     return init_ast(ast_noop);
 }
 
+ast_t* visitor_visit_ast_return(visitor_t* visitor, ast_t* node) {
+    ast_t* return_value = init_ast(ast_return);
+   
+    
+    if (node->return_value != NULL) {
+        // Visit the return_value node to evaluate it.
+         printf("WE ARE VIS RET %d \n",node->type);
+        return_value = visitor_visit(visitor, node->return_value);
+    }
+    
+    visitor->has_returned = true;
+    visitor->return_value = return_value;
+    printf("return value pointer %p\n",return_value);
+    
+}
 
 
 // Function to process escape sequences in a string

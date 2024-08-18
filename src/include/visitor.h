@@ -7,6 +7,8 @@ typedef struct visitor
 {
     scope_t* current_scope;
     scope_t* global_scope; // Add a reference to the global scope
+    bool has_returned;
+    ast_t* return_value;
     
 }visitor_t;
 
@@ -40,6 +42,8 @@ ast_t* visitor_visit_while_statement(visitor_t* visitor, ast_t* node);
 
 ast_t* visitor_visit_for_statement(visitor_t* visitor, ast_t* node);
     
+ast_t* visitor_visit_ast_return(visitor_t* visitor, ast_t* node);
+
 char* process_escaped_sequences(const char* str);
 
 #endif
