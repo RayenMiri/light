@@ -1,11 +1,10 @@
-function <int> add(a,b){
-    return a;
+function <int> fibonacci(n) {
+    if(n<=1){
+        return n;
+    }
+    return fibonacci(n-1) + fibonacci(n-2);
 }
 
-function <string> test(a){
-    return a;
-}
-var b = add(19,1);
-var a = test(4)
-print(b,a)
 
+
+print(fibonacci(10));

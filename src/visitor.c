@@ -35,6 +35,11 @@ static ast_t* pre_defined_func_print(visitor_t* visitor, ast_t** args, int args_
                     printf("false");
                 }
                 break;
+            case ast_func_call:
+                {
+                    printf("it's a functio");
+                }
+                break;
             default:
                 printf("Unhandled type: %d\n", visited_ast->type);
         }
@@ -52,7 +57,6 @@ visitor_t* init_visitor() {
 
 
 ast_t* visitor_visit(visitor_t* visitor, ast_t* node) {
-            printf("node type %d\n",node->type);
 
     switch (node->type) {
         case ast_variable_def:
@@ -109,13 +113,9 @@ ast_t* visitor_visit_ast_variable_def(visitor_t* visitor, ast_t* node) {
         printf("node type in var def vis %d\n",node->type);
    
         ast_t* new_value = visitor_visit(visitor, node->variable_def_var_value);
-        if(new_value->type == 18){
-            printf("here");
-            node->variable_def_var_value = visitor->return_value;
-            scope_set_variable_definition(visitor->current_scope,node );
-        }else{  
-            node->variable_def_var_value = new_value;
-            scope_set_variable_definition(visitor->current_scope, node);}
+        printf("nvt %d\n",new_value->type);
+        node->variable_def_var_value = new_value;
+        scope_set_variable_definition(visitor->current_scope, node);
     }
 
     return node;
@@ -281,7 +281,15 @@ ast_t* visitor_visit_if_statement(visitor_t* visitor, ast_t* node) {
 
     // Check the 'if' condition result
     if (condition->bool_value) {
-        return visitor_visit(visitor, node->if_body);
+       
+        for (int i = 0; i < node->if_body->compound_size; i++) {
+            ast_t* result = visitor_visit(visitor, node->if_body->compound_value[i]);
+            
+            // If a return statement is encountered, stop and return its value
+            if (result->type == ast_return) {
+                return result;
+            }
+        }
     }
 
     // Check each 'elsif' condition only if previous conditions were false
@@ -296,12 +304,28 @@ ast_t* visitor_visit_if_statement(visitor_t* visitor, ast_t* node) {
 
         // If the current 'elsif' condition is true, execute its body and exit
         if (elsif_condition->bool_value) {
+            for (int i = 0; i < node->elsif_bodies[i]->compound_size; i++) {
+            ast_t* result = visitor_visit(visitor, node->elsif_bodies[i]->compound_value[i]);
+            
+            // If a return statement is encountered, stop and return its value
+            if (result->type == ast_return) {
+                return result;
+            }
+        }
             return visitor_visit(visitor, node->elsif_bodies[i]);
         }
     }
 
     // Add handling for 'else' 
     if (node->else_branch_body) {
+        for (int i = 0; i < node->else_branch_body->compound_size; i++) {
+            ast_t* result = visitor_visit(visitor, node->else_branch_body->compound_value[i]);
+            
+            // If a return statement is encountered, stop and return its value
+            if (result->type == ast_return) {
+                return result;
+            }
+        }
         return visitor_visit(visitor, node->else_branch_body);
     }
 
@@ -354,14 +378,12 @@ ast_t* visitor_visit_ast_func_call(visitor_t* visitor, ast_t* node) {
 
     // Check for argument count mismatch
     int args_difference = abs(f_def->func_def_args_size - node->func_call_args_size);
-    if (args_difference == 1) {
-        printf("'%s' missing %d required argument\n", node->func_call_name, args_difference);
-        exit(1);
-    } else if (args_difference > 1) {
-        printf("'%s' missing %d required arguments\n", node->func_call_name, args_difference);
+    if (args_difference > 0) {
+        printf("'%s' called with incorrect number of arguments: expected %d, got %d\n",
+               node->func_call_name, f_def->func_def_args_size, node->func_call_args_size);
         exit(1);
     }
-    
+
     // Create a new local scope for the function
     scope_t* function_scope = init_scope_with_parent(visitor->current_scope);
 
@@ -384,21 +406,26 @@ ast_t* visitor_visit_ast_func_call(visitor_t* visitor, ast_t* node) {
         scope_set_variable_definition(function_scope, ast_vardef);
     }
 
-    // Execute the function body
-    ast_t* f_body = visitor_visit(visitor, f_def->func_def_body);
+    ast_t* result = init_ast(ast_noop); // Default return value
 
-    // Reset the scope to the previous one
-    
+    for (int i = 0; i < f_def->func_def_body->compound_size; i++) {
+        ast_t* statement = f_def->func_def_body->compound_value[i];
+        
+        // Visit the statement
+        result = visitor_visit(visitor, statement);
 
-    printf("it has a return value ? %d\n",visitor->return_value->type);
-
-    ast_t*  returned_value = visitor_visit(visitor,visitor->return_value);
-   
-    printf("return value :%s\n",returned_value->string_value);
+        // If a return statement is encountered, stop execution and return its value
+        if (result->type == ast_return) {
+            visitor->current_scope = visitor->current_scope->parent_scope; // Exit function scope
+            return result->return_value; // Return the value
+        }
+    }
 
     visitor->current_scope = visitor->current_scope->parent_scope;
-    return init_ast(ast_noop);
+
+    return result; // Return the result (or a default value if no return was encountered)
 }
+
 
 
 
@@ -454,22 +481,16 @@ ast_t* visitor_visit_for_statement(visitor_t* visitor, ast_t* node){
 }
 
 ast_t* visitor_visit_ast_return(visitor_t* visitor, ast_t* node) {
-    ast_t* return_value = init_ast(ast_return);
-   
+    // Visit the expression being returned
+    ast_t* return_value = visitor_visit(visitor, node->return_value);
     
-    if (node->return_value != NULL) {
-        // Visit the return_value node to evaluate it.
-         printf("WE ARE VIS RET %d \n",node->type);
-        return_value = visitor_visit(visitor, node->return_value);
-    }
+    // Create a return node with the evaluated value
+    ast_t* return_node = init_ast(ast_return);
+    return_node->return_value = return_value;
     
-    visitor->has_returned = true;
-    visitor->return_value = return_value;
-    printf("return value pointer %p\n",return_value);
-    
+    return return_node; // Return this node to signal return
+
 }
-
-
 // Function to process escape sequences in a string
 char* process_escaped_sequences(const char* str) {
     size_t len = strlen(str);

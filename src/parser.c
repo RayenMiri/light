@@ -522,7 +522,7 @@ ast_t* parser_parse_return(parser_t* parser, scope_t* scope) {
 
     if (parser->current_token->type != TOKEN_SEMI) {  // Check if there's a return expression
 
-        ast_return_node->return_value = parser_parse_exp(parser, scope);
+        ast_return_node->return_value = parser_parse_expression(parser, scope);
         
         
     } else {

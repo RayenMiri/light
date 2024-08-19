@@ -18,5 +18,6 @@
         "system_error": "c",
         "tuple": "c",
         "type_traits": "c"
-    }
+    },
+    "makefile.configureOnOpen": true
 }
