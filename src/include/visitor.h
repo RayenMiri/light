@@ -46,4 +46,6 @@ ast_t* visitor_visit_ast_return(visitor_t* visitor, ast_t* node);
 
 char* process_escaped_sequences(const char* str);
 
+ast_t* visit_ast_parallel(ast_t* root, scope_t* scope);
+
 #endif

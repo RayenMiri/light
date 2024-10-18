@@ -35,11 +35,7 @@ static ast_t* pre_defined_func_print(visitor_t* visitor, ast_t** args, int args_
                     printf("false");
                 }
                 break;
-            case ast_func_call:
-                {
-                    printf("it's a functio");
-                }
-                break;
+            
             default:
                 printf("Unhandled type: %d\n", visited_ast->type);
         }
@@ -110,10 +106,8 @@ ast_t* visitor_visit_ast_variable_def(visitor_t* visitor, ast_t* node) {
     } else {
         
         // Variable does not exist, so add a new definition with the evaluated value
-        printf("node type in var def vis %d\n",node->type);
    
         ast_t* new_value = visitor_visit(visitor, node->variable_def_var_value);
-        printf("nvt %d\n",new_value->type);
         node->variable_def_var_value = new_value;
         scope_set_variable_definition(visitor->current_scope, node);
     }
@@ -134,7 +128,6 @@ ast_t* visitor_visit_ast_variable(visitor_t* visitor, ast_t* node) {
             printf("Error: Infinite recursion detected in variable %s\n", node->variable_name);
             exit(1);
         }
-        printf("variable def  %d\n",v_def->variable_def_var_value->type);
         // Evaluate the variable's value only if it's not a recursive call
         return visitor_visit(visitor, v_def->variable_def_var_value);
     }
@@ -416,6 +409,7 @@ ast_t* visitor_visit_ast_func_call(visitor_t* visitor, ast_t* node) {
 
         // If a return statement is encountered, stop execution and return its value
         if (result->type == ast_return) {
+           
             visitor->current_scope = visitor->current_scope->parent_scope; // Exit function scope
             return result->return_value; // Return the value
         }
