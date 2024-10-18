@@ -90,14 +90,12 @@ ast_t* parser_parse_statement(parser_t* parser, scope_t* scope) {
 }
 
 ast_t* parser_parse_exp(parser_t* parser, scope_t* scope) {
-    printf("parser current token type in exp %d\n",parser->current_token->type);
     switch (parser->current_token->type) {
         case TOKEN_STRING: return parser_parse_string(parser, scope);
         case TOKEN_NUMBER : return parser_parse_number(parser,scope);
         case TOKEN_IDENTIFIER: return parser_parse_identifier(parser, scope);
         case TOKEN_BOOL : return parser_parse_bool(parser,scope);
         default: {
-            printf("whyyyy is it here \n");
             char error_message[100];
             snprintf(error_message, sizeof(error_message),
                      "Unexpected token '%s' of type %d (%s) in expression",
@@ -106,12 +104,10 @@ ast_t* parser_parse_exp(parser_t* parser, scope_t* scope) {
             syntax_error(parser, error_message);
         }
     }
-    printf("ahahahahaha \n");
     return init_ast(ast_noop);
 }
 
 ast_t* parser_parse_func_call(parser_t* parser, scope_t* scope) {
-    printf("test %s\n", parser->prev_token->value);
     ast_t* func_call = init_ast(ast_func_call);
     func_call->func_call_name = parser->prev_token->value;
     func_call->func_call_args = NULL;
@@ -168,12 +164,13 @@ ast_t* parser_parse_func_definition(parser_t* parser, scope_t* scope) {
     ast_t* ast_function_def = init_ast(ast_func_def);
     parser_consume(parser, TOKEN_IDENTIFIER);  // "function"
 
-    // Parse the return type
+    /*// Parse the return type
     parser_consume(parser, TOKEN_LT);  // "<"
     ast_function_def->func_def_return_type = parser->current_token->value;
+    printf("")
     parser_consume(parser, TOKEN_IDENTIFIER);  // e.g., "int"
     parser_consume(parser, TOKEN_GT);  // ">"
-    
+    */
     // Parse the function name
     char* function_name = parser->current_token->value;
     ast_function_def->func_def_name = function_name;
@@ -230,7 +227,6 @@ ast_t* parser_parse_variable(parser_t* parser, scope_t* scope) {
         
         
     } else if (parser->current_token->type == TOKEN_LPAREN) {
-        printf("we are here babyy\n");
         return parser_parse_func_call(parser, scope);
     }else{
         ast_t* ast_var = init_ast(ast_variable);
@@ -522,6 +518,9 @@ ast_t* parser_parse_return(parser_t* parser, scope_t* scope) {
 
     if (parser->current_token->type != TOKEN_SEMI) {  // Check if there's a return expression
 
+        if(parser->current_token->type == TOKEN_STRING){
+            printf("string");
+        }
         ast_return_node->return_value = parser_parse_expression(parser, scope);
         
         
