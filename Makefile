@@ -1,30 +1,32 @@
-# Define variables
-SOURCES := $(wildcard src/*.c)
-OBJECTS := $(SOURCES:.c=.o)
-FLAGS := -g
-EXEC := light.exe
+# Compiler
+CC = gcc
 
-# Default target to build and run the executable with a specified file
-run: $(EXEC)
-	@if not exist "$(file)" ( \
-		echo "Error: The file '$(file)' does not exist"; \
-		exit 1; \
-	)
-	@powershell -Command "if ('$(file)'.Substring('$(file)'.Length - 6) -ne '.light') { exit 1 }" || ( \
-		echo "Error: Only .light files are supported for execution"; \
-		exit 1; \
-	)
-	.\$(EXEC) $(file)
+# Compiler flags
+CFLAGS = -Wall -Wextra -Iinclude -Iclasses/include
 
-# Target to build the executable
-$(EXEC): $(OBJECTS)
-	gcc $(OBJECTS) $(FLAGS) -o $(EXEC)
+# Source files
+SRC = $(wildcard *.c) $(wildcard classes/*.c)
 
-# Rule to build object files
-%.o: %.c include/%.h
-	gcc -c $(FLAGS) $< -o $@
+# Object files
+OBJ = $(SRC:.c=.o)
 
-# Clean up object files and executables
+# Executable name
+EXEC = your_project.exe
+
+# Default target
+all: $(EXEC)
+
+# Link object files to create the executable
+$(EXEC): $(OBJ)
+	$(CC) $(OBJ) -o $@
+
+# Compile source files into object files
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Clean up object files and executable
 clean:
-	del /Q src\*.o
-	del /Q $(EXEC)
+	del /Q $(OBJ) $(EXEC)
+
+# Phony targets
+.PHONY: all clean
