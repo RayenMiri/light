@@ -345,6 +345,8 @@ ast_t* parser_parse_factor(parser_t* parser, scope_t* scope) {
             result = parser_parse_expression(parser, scope);
             parser_consume(parser, TOKEN_RPAREN);
             return result;
+        case TOKEN_STRING:
+            return parser_parse_string(parser, scope);
         default:
             syntax_error(parser, "Unexpected token in factor");
             return NULL;
