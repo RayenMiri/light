@@ -500,6 +500,7 @@ ast_t* parser_parse_for_statement(parser_t* parser, scope_t* scope){
 
     //parse the body
     ast_t* for_body = parser_parse_statements(parser,scope);
+    parser_consume(parser,TOKEN_RBRACE);
 
     // Initialize the for loop AST node
     ast_t* for_ast = init_ast(ast_for);
@@ -508,6 +509,7 @@ ast_t* parser_parse_for_statement(parser_t* parser, scope_t* scope){
     for_ast->for_condition = for_condition;
     for_ast->for_step = for_step;
     for_ast->for_body = for_body;
+    for_ast->scope = scope;
 
     return for_ast;
 }

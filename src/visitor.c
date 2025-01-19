@@ -10,6 +10,7 @@
 
 //predefined functions
 static ast_t* pre_defined_func_print(visitor_t* visitor, ast_t** args, int args_size) {
+    //this should take consideration of the args_size and \n solo printing 
     for (int i = 0; i < args_size; i++) {
         ast_t* visited_ast = visitor_visit(visitor, args[i]);
 
